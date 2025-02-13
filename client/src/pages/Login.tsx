@@ -1,10 +1,12 @@
 import { useState, useReducer, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
-import clsx from "clsx";
+import LoginForm from "@/components/LoginForm";
+import BigLogo from "@/components/BigLogo";
 import Footer from "@/components/Footer";
-import styles from "@/assets/styles/Login.module.scss";
+import styles from "@/assets/styles/Form.module.scss";
 
 const initialState = {
     id: "",
@@ -31,7 +33,6 @@ async function submitLoginData({
 }) {
     try {
         const validated = validateLoginData({ id, password });
-
         if (validated) {
             const response = await axios.post("/api/login", { id, password });
             return response.data;
@@ -90,106 +91,24 @@ export default function Login() {
         <div className={styles["login-page"]}>
             <div className={styles["login-page__inner"]}>
                 <div className={styles["login-container"]}>
-                    <div className={styles["login"]}>
-                        <div className={styles["login__inner"]}>
-                            <h1>
-                                <span>LOGO</span>
-                                인스타그램
-                            </h1>
-                            <form onSubmit={handleSubmit}>
-                                <div className={styles["login__field"]}>
-                                    <div className={styles["login__row"]}>
-                                        <label htmlFor="userId">
-                                            <span
-                                                className={clsx(
-                                                    styles["login__text"],
-                                                    {
-                                                        [styles[
-                                                            "login__text--active"
-                                                        ]]:
-                                                            userData.id.length >
-                                                            0,
-                                                    }
-                                                )}
-                                            >
-                                                전화번호, 사용자 이름 또는
-                                                이메일
-                                            </span>
-                                            <input
-                                                type="text"
-                                                name="id"
-                                                id="userId"
-                                                value={userData.id}
-                                                onChange={handleInputChange}
-                                                className={clsx(
-                                                    styles["login__input"],
-                                                    {
-                                                        [styles[
-                                                            "login__input--active"
-                                                        ]]:
-                                                            userData.id.length >
-                                                            0,
-                                                    }
-                                                )}
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className={styles["login__row"]}>
-                                        <label htmlFor="userPassword">
-                                            <span
-                                                className={clsx(
-                                                    styles["login__text"],
-                                                    {
-                                                        [styles[
-                                                            "login__text--active"
-                                                        ]]:
-                                                            userData.password
-                                                                .length > 0,
-                                                    }
-                                                )}
-                                            >
-                                                비밀번호
-                                            </span>
-                                            <input
-                                                type="password"
-                                                name="password"
-                                                id="userPassword"
-                                                value={userData.password}
-                                                onChange={handleInputChange}
-                                                className={clsx(
-                                                    styles["login__input"],
-                                                    {
-                                                        [styles[
-                                                            "login__input--active"
-                                                        ]]:
-                                                            userData.password
-                                                                .length > 0,
-                                                    }
-                                                )}
-                                            />
-                                        </label>
-                                    </div>
-                                </div>
-                                <div className={styles["login__button"]}>
-                                    <button
-                                        type="submit"
-                                        className={clsx(
-                                            "btn btn-round btn-round--blue",
-                                            {
-                                                ["active"]:
-                                                    userData.password.length >=
-                                                    6,
-                                            }
-                                        )}
-                                    >
-                                        <span>로그인</span>
-                                    </button>
-                                </div>
-                            </form>
-                            <div className={styles["login__hr"]}>
+                    <div className={styles["form"]}>
+                        <div className={styles["form__inner"]}>
+                            <BigLogo />
+                            <LoginForm
+                                userData={userData}
+                                handleInputChange={handleInputChange}
+                                handleSubmit={handleSubmit}
+                            />
+                            <div className={styles["form__hr"]}>
                                 <span>또는</span>
                             </div>
-                            <div className={styles["login__red"]}>{text}</div>
+                            <div className={styles["form__red"]}>{text}</div>
+                        </div>
+                    </div>
+                    <div className={styles["form"]}>
+                        <div className={styles["form__link"]}>
+                            계정이 없으신가요?
+                            <Link to="/accounts/signup">가입하기</Link>
                         </div>
                     </div>
                 </div>
