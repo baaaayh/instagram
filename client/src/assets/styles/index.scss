@@ -1,0 +1,27 @@
+@import "./reset.scss";
+@import "./fonts.scss";
+@import "./button.scss";
+
+.ir {
+    overflow: hidden;
+    visibility: hidden;
+    position: absolute;
+    top: -999999px;
+    left: -999999px;
+    width: 0;
+    height: 0;
+    font-size: 0;
+    text-indent: -999999px;
+}
+
+body {
+    font-family: "Pretendard", system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+}
+
+input {
+    padding: 0 8px;
+    font-size: 13px;
+    border: 1px solid rgba(219, 219, 219);
+    border-radius: 4px;
+}

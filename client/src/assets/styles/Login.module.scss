@@ -1,0 +1,102 @@
+.login-page {
+    height: 100dvh;
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        align-items: center;
+        height: 100%;
+    }
+}
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    padding: 32px 0;
+}
+.login {
+    max-width: 350px;
+    width: 100%;
+    padding: 50px 40px 20px;
+    border: 1px solid rgba(219, 219, 219);
+    &__inner {
+        h1 {
+            margin-bottom: 36px;
+            text-align: center;
+            span {
+                display: inline-flex;
+                width: 175px;
+                height: 51px;
+                background: url(/images/common/logo.png) 0 -52px / 100% no-repeat;
+            }
+            font-size: 0;
+        }
+    }
+    &__field {
+        display: flex;
+        flex-direction: column;
+        row-gap: 6px;
+    }
+    &__row {
+        position: relative;
+        span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 0 8px;
+            font-size: 13px;
+            line-height: 36px;
+            color: rgba(115, 115, 115);
+            pointer-events: none;
+            transform-origin: left;
+        }
+    }
+    &__text {
+        transition: transform ease-out 0.1s;
+        &--active {
+            transform: scale(calc(10 / 12)) translateY(-10px);
+        }
+    }
+    &__input {
+        display: inline-block;
+        width: 100%;
+        height: 36px;
+        padding: 9px 0px 7px 8px;
+        color: rgba(0, 0, 0);
+        background-color: rgba(250, 250, 250);
+        &--active {
+            padding: 14px 0px 2px 8px;
+        }
+    }
+    &__button {
+        margin-top: 8px;
+    }
+    &__break {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        span {
+            display: inline-block;
+            font-size: 13px;
+            color: rgba(115, 115, 115);
+        }
+        &::before,
+        &::after {
+            content: "";
+            display: inline-block;
+            flex: 1;
+            height: 1px;
+            background-color: rgba(219, 219, 219);
+        }
+    }
+    &__red {
+        font-size: 14px;
+        line-height: 18px;
+        color: rgba(237, 73, 86);
+        text-align: center;
+    }
+}
