@@ -1,0 +1,110 @@
+.form {
+    max-width: 350px;
+    width: 100%;
+    padding: 25px 40px;
+    border: 1px solid rgba(219, 219, 219);
+    font-size: 14px;
+    line-height: 18px;
+    text-align: center;
+    &__inner {
+        padding: 40px 0 0;
+        text-align: left;
+    }
+    &__field {
+        display: flex;
+        flex-direction: column;
+        row-gap: 6px;
+    }
+    &__row {
+        position: relative;
+        span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 0 8px;
+            font-size: 13px;
+            line-height: 36px;
+            color: rgba(115, 115, 115);
+            pointer-events: none;
+            transform-origin: left;
+        }
+        p {
+            margin-top: 5px;
+            font-size: 12px;
+            line-height: 14px;
+            color: rgba(255, 48, 64);
+        }
+    }
+    &__text {
+        transition: transform ease-out 0.1s;
+        &--active {
+            transform: scale(calc(10 / 12)) translateY(-10px);
+        }
+    }
+    &__input {
+        display: inline-block;
+        width: 100%;
+        height: 36px;
+        padding: 9px 0px 7px 8px;
+        color: rgba(0, 0, 0);
+        background-color: rgba(250, 250, 250);
+        &--active {
+            padding: 14px 0px 2px 8px;
+        }
+    }
+    &__button {
+        margin-top: 8px;
+    }
+    &__hr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        span {
+            display: inline-block;
+            padding: 0 8px;
+            font-size: 13px;
+            color: rgba(115, 115, 115);
+        }
+        &::before,
+        &::after {
+            content: "";
+            display: inline-block;
+            flex: 1;
+            height: 1px;
+            background-color: rgba(219, 219, 219);
+        }
+    }
+    &__red {
+        font-size: 14px;
+        line-height: 18px;
+        color: rgba(237, 73, 86);
+        text-align: center;
+    }
+    > a {
+        display: inline-block;
+        margin: 0 5px;
+        font-weight: 600;
+        color: rgba(0, 149, 246);
+    }
+    &__link {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        p {
+            font-size: 12px;
+            line-height: 16px;
+            color: rgba(115, 115, 115);
+        }
+        a {
+            display: inline-block;
+            color: rgba(0, 55, 107);
+        }
+        &--mt15 {
+            margin-top: 15px;
+        }
+    }
+}
