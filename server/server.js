@@ -1,64 +1,83 @@
 const express = require("express");
-
 const pool = require("./db.js");
-
 const app = express();
+const bcrypt = require("bcryptjs");
+const login = require("./auth/auth.js");
+const cors = require("cors");
 
+console.log(login);
+
+app.use(
+    cors({
+        origin: "http://localhost:5174",
+        credentials: true,
+    })
+);
 app.use(express.json());
+
 app.get("/", function (req, res) {
     res.send("Welcome!");
 });
 
-app.post("/api/accounts/signup", function (req, res) {
-    console.log(req.body);
+app.post("/api/accounts/login", login);
+
+app.post("/api/accounts/signup", async function (req, res) {
+    const { id, password, username, nickname } = req.body;
+    try {
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
+        const newUser = await pool.query(
+            "INSERT INTO users (id, hashed_password, username, nickname) VALUES ($1, $2, $3, $4) RETURNING id, username, nickname",
+            [id, hashedPassword, username, nickname]
+        );
+
+        res.status(201).json({
+            success: true,
+            id: newUser.rows[0].id,
+            username: newUser.rows[0].username,
+            nickname: newUser.rows[0].nickname,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.",
+        });
+        console.log(error);
+    }
 });
 
-app.post("/api/accounts/duplicate", function (req, res) {
-    const params = req.body.params;
-    if (params.name === "id" || params.name === "nickName") {
+app.post("/api/accounts/validate", async function (req, res) {
+    const { name, value } = req.body.params;
+    if (name === "id" || name === "nickname") {
         let message;
-        if (params.name === "id") {
+        let item;
+
+        if (name === "id") {
             message = "다른 계정에서 동일한 이메일 주소를 사용 중입니다.";
+            item = name.toLowerCase();
         }
-        if (params.name === "nickName") {
+        if (name === "nickname") {
             message = "이 사용자 이름은 이미 다른 사람이 사용하고 있습니다.";
+            item = name.toLowerCase();
         }
 
-        pool.query("SELECT * FROM users WHERE $1 = $2", [
-            params.name,
-            params.value,
-        ]).then((result) => {
+        const query = `SELECT * FROM users WHERE ${item} = $1`;
+
+        pool.query(query, [value]).then((result) => {
             if (result.rows.length > 0) {
-                res.json({
+                res.status(201).json({
                     success: false,
-                    name: params.name,
+                    name: name,
                     message,
                 });
             } else {
-                res.json({
+                res.status(201).json({
                     success: true,
-                    name: params.name,
+                    name: name,
                     message: "중복 없음.",
                 });
             }
         });
     }
-});
-
-app.post("/api/login", function (req, res) {
-    let success;
-    let message;
-    // if (req) {
-    //     success = true;
-    //     message = "로그인 성공.";
-    // } else {
-    // }
-    success = false;
-    message = "잘못된 비밀번호입니다. 다시 확인하세요.";
-    res.json({
-        success,
-        message,
-    });
 });
 
 app.listen(5000, function () {
