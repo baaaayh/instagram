@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import axios from "axios";
-import { useNavigate, NavigateFunction, Outlet } from "react-router-dom";
-import useAuth from "@/utils/useAuth";
+import {
+    useLocation,
+    useNavigate,
+    NavigateFunction,
+    Outlet,
+} from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 
 async function getNewAccessToken(navigate: NavigateFunction) {
     const refreshToken = localStorage.getItem("refreshToken");
@@ -12,14 +17,21 @@ async function getNewAccessToken(navigate: NavigateFunction) {
     }
 
     try {
-        const response = await axios.post("/api/token/refresh", {
-            refreshToken,
-        });
+        const response = await axios.post(
+            "/api/token/refresh",
+            {},
+            {
+                headers: {
+                    "x-refresh-token": `Bearer ${refreshToken}`, // 리프레시 토큰을 헤더에 담아 전송
+                },
+            }
+        );
 
         const data = response.data;
 
         if (response.status === 200) {
             localStorage.setItem("accessToken", data.accessToken);
+            useAuthStore.getState().setTokenState(true, true);
         } else if (response.status === 401) {
             alert(data.error);
             navigate("/accounts/login");
@@ -34,25 +46,38 @@ async function getNewAccessToken(navigate: NavigateFunction) {
 }
 
 const PrivateRoute = () => {
-    const { isAuthenticated, isRefreshToken } = useAuth();
+    const { isAccessToken, isRefreshToken, setTokenState, resetTokenState } =
+        useAuthStore();
     const navigate = useNavigate();
-
-    console.log(isAuthenticated, isRefreshToken);
+    const location = useLocation();
 
     useEffect(() => {
-        if (isAuthenticated === null) return;
-        if (isAuthenticated === false) {
+        const accessToken = !!localStorage.getItem("accessToken");
+        const refreshToken = !!localStorage.getItem("refreshToken");
+        setTokenState(accessToken, refreshToken);
+    }, [location.pathname, setTokenState]);
+
+    useEffect(() => {
+        if (!isAccessToken) {
             if (isRefreshToken) {
                 getNewAccessToken(navigate);
-            } else if (isRefreshToken === false) {
+            }
+            if (!isRefreshToken) {
                 navigate("/accounts/login");
             }
-        } else {
-            navigate("/");
         }
-    }, [isAuthenticated, isRefreshToken, navigate]);
+        if (isAccessToken) {
+            if (!isRefreshToken) {
+                localStorage.removeItem("accessToken");
+                navigate("/accounts/login");
+            }
+            if (isRefreshToken) {
+                navigate("/");
+            }
+        }
+    }, [isAccessToken, isRefreshToken, navigate, resetTokenState]);
 
-    if (isAuthenticated === null) {
+    if (isAccessToken === null) {
         return null;
     }
 

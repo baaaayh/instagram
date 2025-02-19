@@ -5,7 +5,7 @@ const pool = require("../db.js");
 dotenv.config();
 
 async function refreshToken(req, res) {
-    const { refreshToken } = req.body;
+    const refreshToken = req.headers["x-refresh-token"].split(" ")[1];
 
     if (!refreshToken) {
         return res

@@ -1,6 +1,7 @@
 import { useReducer, useCallback, memo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import InputField from "@/components/InputField";
+import { useAuthStore } from "@/store/authStore";
 import axios from "axios";
 import axiosInstance from "@/api/axiosInstance";
 import clsx from "clsx";
@@ -59,6 +60,7 @@ export default memo(function LoginForm({
     setText: (text: string) => void;
 }) {
     const [state, dispatch] = useReducer(reducer, initialState);
+    const { setTokenState } = useAuthStore();
 
     const mutation = useMutation({
         mutationFn: submitLoginData,
@@ -66,6 +68,7 @@ export default memo(function LoginForm({
             if (data.success === true) {
                 localStorage.setItem("accessToken", data.accessToken);
                 localStorage.setItem("refreshToken", data.refreshToken);
+                setTokenState(!!data.accessToken, !!data.refreshToken);
             } else {
                 setText(data.message);
             }
