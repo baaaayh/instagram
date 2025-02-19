@@ -1,5 +1,4 @@
 import { useReducer, useCallback, memo } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import InputField from "@/components/InputField";
 import axios from "axios";
@@ -60,14 +59,13 @@ export default memo(function LoginForm({
     setText: (text: string) => void;
 }) {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const navigate = useNavigate();
 
     const mutation = useMutation({
         mutationFn: submitLoginData,
         onSuccess: (data) => {
             if (data.success === true) {
                 localStorage.setItem("accessToken", data.accessToken);
-                navigate("/");
+                localStorage.setItem("refreshToken", data.refreshToken);
             } else {
                 setText(data.message);
             }

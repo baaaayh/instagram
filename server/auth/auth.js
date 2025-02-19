@@ -20,13 +20,13 @@ async function login(req, res) {
     const { id, password } = req.body.params;
 
     try {
-        const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+        const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [
             id,
         ]);
-        const validated = await bcrypt.compare(
-            password,
-            user.rows[0].hashed_password
-        );
+
+        const user = result.rows[0];
+
+        const validated = await bcrypt.compare(password, user.hashed_password);
 
         if (!validated) {
             return res
@@ -46,6 +46,7 @@ async function login(req, res) {
             success: true,
             message: "정상적으로 로그인되었습니다.",
             accessToken,
+            refreshToken,
         });
     } catch (error) {
         res.status(500).json({ error: "로그인 중 오류가 발생했습니다." });

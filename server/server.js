@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const login = require("./auth/auth.js");
 const cors = require("cors");
 
-console.log(login);
+const refreshToken = require("./auth/refresh.js");
 
 app.use(
     cors({
@@ -14,12 +14,15 @@ app.use(
     })
 );
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", function (req, res) {
     res.send("Welcome!");
 });
 
 app.post("/api/accounts/login", login);
+
+app.post("/api/token/refresh", refreshToken);
 
 app.post("/api/accounts/signup", async function (req, res) {
     const { id, password, username, nickname } = req.body;

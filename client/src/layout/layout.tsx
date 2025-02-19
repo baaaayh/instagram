@@ -1,10 +1,15 @@
 import { Outlet } from "react-router-dom";
-import styles from "@/assets/styles/Layout.module.scss";
+import SideNav from "@/components/SideNav";
 
 export default function Layout() {
     return (
-        <div className={styles["container"]}>
-            <Outlet />
+        <div className="container">
+            <div className="view">
+                <div className="view__inner">
+                    <Outlet />
+                </div>
+            </div>
+            <SideNav />
         </div>
     );
 }
