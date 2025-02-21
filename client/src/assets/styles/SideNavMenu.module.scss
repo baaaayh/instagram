@@ -1,0 +1,31 @@
+.menu {
+    flex: 1;
+    ul {
+        display: flex;
+        flex-direction: column;
+        row-gap: 4px;
+    }
+    &__item {
+        a {
+            display: block;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+        }
+    }
+    &__link {
+        padding: 12px;
+    }
+    &__row {
+        display: flex;
+        align-items: center;
+        column-gap: 16px;
+    }
+    &__icon {
+    }
+    &__text {
+        font-size: 16px;
+    }
+}
