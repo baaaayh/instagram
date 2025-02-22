@@ -12,12 +12,16 @@
     },
     "dependencies": {
         "@tanstack/react-query": "^5.66.0",
+        "@types/react-slick": "^0.23.13",
         "axios": "^1.7.9",
         "clsx": "^2.1.1",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "react-dropzone": "^14.3.5",
+        "react-easy-crop": "^5.2.0",
         "react-router-dom": "^7.1.5",
         "sass": "^1.84.0",
+        "slick-carousel": "^1.8.1",
         "vite-plugin-svgr": "^4.3.0",
         "vite-tsconfig-paths": "^5.1.4",
         "zustand": "^5.0.3"
