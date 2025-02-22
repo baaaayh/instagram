@@ -121,10 +121,7 @@ export default memo(function CropComponent({
                 onCropChange={onCropChangeHandler}
                 onZoomChange={onZoomChangeHandler}
                 onCropComplete={onCropCompleteHandler}
-                onWheelRequest={(e: WheelEvent) => {
-                    e.preventDefault();
-                    return false;
-                }}
+                onWheelRequest={() => false}
                 objectFit="cover"
                 cropSize={{
                     width: containerSize.width,

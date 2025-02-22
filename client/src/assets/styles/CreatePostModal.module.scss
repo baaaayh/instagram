@@ -7,6 +7,12 @@
     width: 100%;
     background-color: #fff;
     border-radius: 12px;
+    &--active {
+        max-width: 1185px;
+        .create-post__inner {
+            width: calc(100% - 340px);
+        }
+    }
     &__header {
         display: flex;
         justify-content: center;
@@ -46,6 +52,7 @@
     }
     &__body {
         flex: 1;
+        display: flex;
         width: 100%;
         aspect-ratio: 1 / 1;
         max-height: min(100vmin - 45px - 65px, 890px - 45px);
@@ -54,10 +61,18 @@
             background-color: rgba(219, 219, 219, 0.3);
         }
     }
+    &__flex {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
     &__inner {
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100%;
         height: 100%;
     }
     &__guide {
@@ -111,6 +126,42 @@
         position: relative;
         width: 100%;
         height: 100%;
+    }
+    &__write {
+        width: 340px;
+        border-left: 1px solid rgba(219, 219, 219);
+    }
+    &__inset {
+        padding: 16px;
+    }
+    &__profile {
+        margin-bottom: 15px;
+    }
+    &__user {
+        display: flex;
+        column-gap: 8px;
+        align-items: center;
+    }
+    &__img {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+    }
+    &__nickname {
+        font-weight: 600;
+    }
+    &__textarea {
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            resize: none;
+            border: none;
+            &:focus {
+                outline: none;
+            }
+        }
     }
     :global(.slick-slider) {
         width: 100%;

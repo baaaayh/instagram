@@ -10,6 +10,7 @@ import Arrow from "@/assets/images/icons/icon_slider_arrow.svg?react";
 import Back from "@/assets/images/icons/icon_back.svg?react";
 import clsx from "clsx";
 import styles from "@/assets/styles/CreatePostModal.module.scss";
+import ProfileIcon from "./ProfileIcon";
 
 export interface CroppedAreaType {
     x: number;
@@ -130,19 +131,27 @@ export default function CreatePostModal() {
     }, [setCroppedImages, state.step]);
 
     useEffect(() => {
+        if (state.step === 0) {
+            setFilesURL([]);
+        }
         if (state.step === 1) {
             setCroppedImages([]);
         }
     }, [state.step]);
+
     return (
         <ModalContainer>
-            <div className={styles["create-post"]}>
+            <div
+                className={clsx(styles["create-post"], {
+                    [styles["create-post--active"]]: state.step === 3,
+                })}
+            >
                 {state.step === 0 && (
                     <div className={styles["create-post__header"]}>
                         <h2>새 게시물 만들기</h2>
                     </div>
                 )}
-                {(state.step === 1 || state.step === 2) && (
+                {state.step !== 0 && (
                     <div className={styles["create-post__header"]}>
                         <div className={styles["create-post__row"]}>
                             <button
@@ -155,14 +164,27 @@ export default function CreatePostModal() {
                                     이전
                                 </span>
                             </button>
-                            <h2>자르기</h2>
-                            <button
-                                type="button"
-                                onClick={handleCropConfirm}
-                                className={styles["create-post__next"]}
-                            >
-                                <span>다음</span>
-                            </button>
+                            <h2>
+                                {state.step !== 3
+                                    ? "자르기"
+                                    : "새 게시물 만들기"}
+                            </h2>
+                            {state.step !== 3 ? (
+                                <button
+                                    type="button"
+                                    onClick={handleCropConfirm}
+                                    className={styles["create-post__next"]}
+                                >
+                                    <span>다음</span>
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className={styles["create-post__next"]}
+                                >
+                                    <span>공유하기</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -225,7 +247,7 @@ export default function CreatePostModal() {
                                 </Slider>
                             </div>
                         )}
-                        {state.step === 2 && (
+                        {(state.step === 2 || state.step === 3) && (
                             <div className={styles["create-post__preview"]}>
                                 <Slider
                                     dots
@@ -256,6 +278,37 @@ export default function CreatePostModal() {
                             />
                         </form>
                     </div>
+                    {state.step === 3 && (
+                        <div className={styles["create-post__write"]}>
+                            <div className={styles["create-post__inset"]}>
+                                <div className={styles["create-post__profile"]}>
+                                    <div
+                                        className={styles["create-post__user"]}
+                                    >
+                                        <span
+                                            className={
+                                                styles["create-post__img"]
+                                            }
+                                        >
+                                            <ProfileIcon />
+                                        </span>
+                                        <span
+                                            className={
+                                                styles["create-post__nickname"]
+                                            }
+                                        >
+                                            baaaayh
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    className={styles["create-post__textarea"]}
+                                >
+                                    <textarea name="" id=""></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </ModalContainer>
