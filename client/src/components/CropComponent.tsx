@@ -43,6 +43,7 @@ export default memo(function CropComponent({
     const [zoom, setZoom] = useState<ZoomType>(initialZoom);
     const [croppedAreaPixels, setCroppedAreaPixels] =
         useState<CroppedAreaPixels>(null);
+    const [panelState, setPanelState] = useState(false);
 
     const onCropChangeHandler = useCallback(
         (crop: Crop) => {
@@ -106,6 +107,10 @@ export default memo(function CropComponent({
         return () => window.removeEventListener("resize", updateSize);
     }, []);
 
+    const handlePanelState = useCallback(() => {
+        setPanelState(!panelState);
+    }, [panelState]);
+
     return (
         <div className={styles["crop-container"]} ref={containerRef}>
             <Cropper
@@ -116,6 +121,10 @@ export default memo(function CropComponent({
                 onCropChange={onCropChangeHandler}
                 onZoomChange={onZoomChangeHandler}
                 onCropComplete={onCropCompleteHandler}
+                onWheelRequest={(e: WheelEvent) => {
+                    e.preventDefault();
+                    return false;
+                }}
                 objectFit="cover"
                 cropSize={{
                     width: containerSize.width,
@@ -124,23 +133,25 @@ export default memo(function CropComponent({
             />
             <div className={styles["controls"]}>
                 <div className={styles["controls__zoom"]}>
-                    <button type="button">
+                    <button type="button" onClick={handlePanelState}>
                         <span>
                             <Zoom />
                         </span>
                     </button>
-                    <div className={styles["controls__panel"]}>
-                        <input
-                            type="range"
-                            value={zoom}
-                            onChange={(e) =>
-                                onZoomChangeHandler(Number(e.target.value))
-                            }
-                            min={1}
-                            max={2}
-                            step={0.05}
-                        />
-                    </div>
+                    {panelState && (
+                        <div className={styles["controls__panel"]}>
+                            <input
+                                type="range"
+                                value={zoom}
+                                onChange={(e) =>
+                                    onZoomChangeHandler(Number(e.target.value))
+                                }
+                                min={1}
+                                max={2}
+                                step={0.05}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
