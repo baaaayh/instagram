@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect, useReducer } from "react";
 import { useDropzone } from "react-dropzone";
 import Slider, { CustomArrowProps } from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -7,6 +7,7 @@ import ModalContainer from "@/components/ModalContainer";
 import CropComponent from "@/components/CropComponent";
 import PostGuide from "@/assets/images/icons/icon_post_guide.svg?react";
 import Arrow from "@/assets/images/icons/icon_slider_arrow.svg?react";
+import Back from "@/assets/images/icons/icon_back.svg?react";
 import clsx from "clsx";
 import styles from "@/assets/styles/CreatePostModal.module.scss";
 
@@ -43,10 +44,30 @@ export function NextArrow({ onClick, className }: CustomArrowProps) {
     );
 }
 
+const initialState = {
+    step: 0,
+};
+
+const reducer = (state: typeof initialState, action: { type: string }) => {
+    switch (action.type) {
+        case "NEXT_STEP":
+            return { step: state.step + 1 };
+        case "PREV_STEP":
+            return { step: state.step - 1 };
+        default:
+            return state;
+    }
+};
+
 export default function CreatePostModal() {
     const sliderRef = useRef<Slider | null>(null);
     const [filesURL, setFilesURL] = useState<string[]>([]);
     const cropRefs = useRef<{ [key: string]: () => void }>({});
+    const [croppedImages, setCroppedImages] = useState<string[]>([]);
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const [cropInfos, setCropInfos] = useState<{
+        [key: string]: { crop: { x: number; y: number }; zoom: number };
+    }>({});
 
     const setCropFunction = (image: string, func: () => void) => {
         cropRefs.current[image] = func;
@@ -59,6 +80,7 @@ export default function CreatePostModal() {
                 cropRefs.current[fileURL]();
             }
         });
+        dispatch({ type: "NEXT_STEP" });
     };
 
     const onDrop = useCallback((files: File[]) => {
@@ -68,6 +90,7 @@ export default function CreatePostModal() {
                 setFilesURL((prev) => [...prev, blobURL]);
             });
         }
+        dispatch({ type: "NEXT_STEP" });
     }, []);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -75,28 +98,72 @@ export default function CreatePostModal() {
         onDrop: onDrop,
     });
 
-    const onCropComplete = (_: string, croppedImage: string) => {
-        console.log(croppedImage);
-    };
+    const onCropComplete = useCallback(
+        (imageKey: string, croppedImage: string) => {
+            setCroppedImages((prev) => {
+                const index = filesURL.indexOf(imageKey);
+                if (index === -1) return prev;
 
+                const updatedImages = [...prev];
+                updatedImages[index] = croppedImage;
+                return updatedImages;
+            });
+        },
+        [filesURL]
+    );
+
+    const handleCropChange = useCallback(
+        (image: string, crop: { x: number; y: number }, zoom: number) => {
+            setCropInfos((prev) => ({
+                ...prev,
+                [image]: { crop, zoom },
+            }));
+        },
+        []
+    );
+
+    const handlePrevStep = useCallback(() => {
+        if (state.step === 0) {
+            setCroppedImages([]);
+        }
+        dispatch({ type: "PREV_STEP" });
+    }, [setCroppedImages, state.step]);
+
+    useEffect(() => {
+        if (state.step === 1) {
+            setCroppedImages([]);
+        }
+    }, [state.step]);
     return (
         <ModalContainer>
             <div className={styles["create-post"]}>
-                {filesURL.length <= 0 ? (
+                {state.step === 0 && (
                     <div className={styles["create-post__header"]}>
                         <h2>새 게시물 만들기</h2>
                     </div>
-                ) : (
+                )}
+                {(state.step === 1 || state.step === 2) && (
                     <div className={styles["create-post__header"]}>
-                        <button type="button">
-                            <span>이전</span>
-                        </button>
                         <div className={styles["create-post__row"]}>
+                            <button
+                                type="button"
+                                className={styles["create-post__back"]}
+                                onClick={handlePrevStep}
+                            >
+                                <span>
+                                    <Back />
+                                    이전
+                                </span>
+                            </button>
                             <h2>자르기</h2>
+                            <button
+                                type="button"
+                                onClick={handleCropConfirm}
+                                className={styles["create-post__next"]}
+                            >
+                                <span>다음</span>
+                            </button>
                         </div>
-                        <button type="button" onClick={handleCropConfirm}>
-                            <span>다음</span>
-                        </button>
                     </div>
                 )}
                 <div
@@ -106,7 +173,7 @@ export default function CreatePostModal() {
                     })}
                 >
                     <div className={styles["create-post__inner"]}>
-                        {filesURL.length <= 0 ? (
+                        {state.step === 0 && (
                             <div className={styles["create-post__guide"]}>
                                 <div className={styles["create-post__icon"]}>
                                     <PostGuide />
@@ -122,7 +189,8 @@ export default function CreatePostModal() {
                                     </button>
                                 </div>
                             </div>
-                        ) : (
+                        )}
+                        {state.step === 1 && (
                             <div className={styles["create-post__modify"]}>
                                 <Slider
                                     dots
@@ -142,12 +210,43 @@ export default function CreatePostModal() {
                                             image={image}
                                             onCropComplete={onCropComplete}
                                             setCropFunction={setCropFunction}
+                                            initialCrop={
+                                                cropInfos[image]?.crop || {
+                                                    x: 0,
+                                                    y: 0,
+                                                }
+                                            }
+                                            initialZoom={
+                                                cropInfos[image]?.zoom || 1
+                                            }
+                                            onCropChange={handleCropChange}
                                         />
                                     ))}
                                 </Slider>
                             </div>
                         )}
-
+                        {state.step === 2 && (
+                            <div className={styles["create-post__preview"]}>
+                                <Slider
+                                    dots
+                                    arrows
+                                    infinite={false}
+                                    speed={0}
+                                    slidesToShow={1}
+                                    slidesToScroll={1}
+                                    draggable={false}
+                                    ref={sliderRef}
+                                    prevArrow={<PrevArrow />}
+                                    nextArrow={<NextArrow />}
+                                >
+                                    {croppedImages.map((image) => (
+                                        <div key={image}>
+                                            <img src={image} alt="preview" />
+                                        </div>
+                                    ))}
+                                </Slider>
+                            </div>
+                        )}
                         <form action="">
                             <input
                                 {...getInputProps()}

@@ -12,10 +12,36 @@
         justify-content: center;
         align-items: center;
         height: 45px;
+        padding: 0 10px;
         border-bottom: 1px solid rgba(219, 219, 219);
         h2 {
             font-size: 16px;
             font-weight: 700;
+        }
+    }
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    &__back {
+        display: inline-flex;
+        padding: 8px;
+        cursor: pointer;
+        span {
+            display: inline-block;
+            font-size: 0;
+        }
+    }
+    &__next {
+        display: inline-flex;
+        padding: 8px;
+        cursor: pointer;
+        span {
+            display: inline-block;
+            font-weight: 600;
+            color: rgba(0, 149, 246);
         }
     }
     &__body {
@@ -80,6 +106,11 @@
     }
     &__next {
         right: 25px;
+    }
+    &__preview {
+        position: relative;
+        width: 100%;
+        height: 100%;
     }
     :global(.slick-slider) {
         width: 100%;

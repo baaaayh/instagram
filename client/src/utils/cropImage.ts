@@ -9,51 +9,47 @@ export default async function getCroppedImg(
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
-            const outputSize = { width: 500, height: 500 };
-            // const imageAspectRatio = image.width / image.height;
-            // const outputAspectRatio = outputSize.width / outputSize.height;
+            const outputSize = { width: 1024, height: 1024 };
+            const outputAspectRatio = outputSize.width / outputSize.height;
 
+            // 크롭 영역의 비율 계산
+            const cropAspectRatio =
+                cropAreaPixels.width / cropAreaPixels.height;
+
+            let drawWidth,
+                drawHeight,
+                offsetX = 0,
+                offsetY = 0;
+
+            if (cropAspectRatio > outputAspectRatio) {
+                // 크롭 영역이 더 넓은 경우
+                drawWidth = outputSize.width;
+                drawHeight = drawWidth / cropAspectRatio;
+            } else {
+                // 크롭 영역이 더 높은 경우
+                drawHeight = outputSize.height;
+                drawWidth = drawHeight * cropAspectRatio;
+            }
+
+            // 캔버스 크기 설정
             canvas.width = outputSize.width;
             canvas.height = outputSize.height;
 
-            if (
-                image.width < outputSize.width ||
-                image.height < outputSize.height
-            ) {
-                const scaleX = outputSize.width / image.width;
-                const scaleY = outputSize.height / image.height;
-                const scale = Math.max(scaleX, scaleY);
+            // 중앙 정렬을 위한 오프셋 계산
+            offsetX = (outputSize.width - drawWidth) / 2;
+            offsetY = (outputSize.height - drawHeight) / 2;
 
-                const scaledWidth = image.width * scale;
-                const scaledHeight = image.height * scale;
-
-                const offsetX = (scaledWidth - outputSize.width) / 2;
-                const offsetY = (scaledHeight - outputSize.height) / 2;
-
-                ctx?.drawImage(
-                    image,
-                    cropAreaPixels.x,
-                    cropAreaPixels.y,
-                    cropAreaPixels.width,
-                    cropAreaPixels.height,
-                    -offsetX,
-                    -offsetY,
-                    scaledWidth,
-                    scaledHeight
-                );
-            } else {
-                ctx?.drawImage(
-                    image,
-                    cropAreaPixels.x,
-                    cropAreaPixels.y,
-                    cropAreaPixels.width,
-                    cropAreaPixels.height,
-                    0,
-                    0,
-                    outputSize.width,
-                    outputSize.height
-                );
-            }
+            ctx?.drawImage(
+                image,
+                cropAreaPixels.x,
+                cropAreaPixels.y,
+                cropAreaPixels.width,
+                cropAreaPixels.height,
+                offsetX,
+                offsetY,
+                drawWidth,
+                drawHeight
+            );
 
             canvas.toBlob((blob) => {
                 if (blob) {

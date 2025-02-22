@@ -4,30 +4,61 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from "@/utils/cropImage";
 import Zoom from "@/assets/images/icons/icon_zoom.svg?react";
 
+// Define a type for the crop state
+type Crop = {
+    x: number;
+    y: number;
+};
+
+// Define a type for the cropped area pixels state
+type CroppedAreaPixels = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+} | null;
+
+type ZoomType = number;
+
+interface CropComponentProps {
+    image: string;
+    onCropComplete: (image: string, croppedImage: string) => void;
+    setCropFunction: (image: string, func: () => void) => void;
+    initialCrop: Crop;
+    initialZoom: ZoomType;
+    onCropChange: (image: string, crop: Crop, zoom: ZoomType) => void;
+}
+
 export default memo(function CropComponent({
     image,
     onCropComplete,
     setCropFunction,
-}: {
-    image: string;
-    onCropComplete: (image: string, croppedImage: string) => void;
-    setCropFunction: (image: string, func: () => void) => void;
-}) {
+    initialCrop,
+    initialZoom,
+    onCropChange,
+}: CropComponentProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    } | null>(null);
+    const [crop, setCrop] = useState<Crop>(initialCrop);
+    const [zoom, setZoom] = useState<ZoomType>(initialZoom);
+    const [croppedAreaPixels, setCroppedAreaPixels] =
+        useState<CroppedAreaPixels>(null);
 
-    const onCropChange = (crop: { x: number; y: number }) => setCrop(crop);
-    const onZoomChange = (zoom: number) => {
-        setZoom(Number(zoom));
-    };
+    const onCropChangeHandler = useCallback(
+        (crop: Crop) => {
+            setCrop(crop);
+            onCropChange(image, crop, zoom);
+        },
+        [image, zoom, onCropChange]
+    );
+
+    const onZoomChangeHandler = useCallback(
+        (zoom: ZoomType) => {
+            setZoom(zoom);
+            onCropChange(image, crop, zoom);
+        },
+        [image, crop, onCropChange]
+    );
 
     const onCropCompleteHandler = useCallback(
         (
@@ -82,8 +113,8 @@ export default memo(function CropComponent({
                 crop={crop}
                 zoom={zoom}
                 aspect={1}
-                onCropChange={onCropChange}
-                onZoomChange={onZoomChange}
+                onCropChange={onCropChangeHandler}
+                onZoomChange={onZoomChangeHandler}
                 onCropComplete={onCropCompleteHandler}
                 objectFit="cover"
                 cropSize={{
@@ -103,7 +134,7 @@ export default memo(function CropComponent({
                             type="range"
                             value={zoom}
                             onChange={(e) =>
-                                onZoomChange(Number(e.target.value))
+                                onZoomChangeHandler(Number(e.target.value))
                             }
                             min={1}
                             max={2}
