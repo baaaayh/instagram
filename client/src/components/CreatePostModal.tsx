@@ -1,8 +1,11 @@
 import { useCallback, useRef, useState, useEffect, useReducer } from "react";
 import { useDropzone } from "react-dropzone";
+import axios from "axios";
 import Slider, { CustomArrowProps } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { v4 as uuidv4 } from "uuid";
+import { useAuthStore } from "@/store/authStore";
 import ModalContainer from "@/components/ModalContainer";
 import CropComponent from "@/components/CropComponent";
 import PostGuide from "@/assets/images/icons/icon_post_guide.svg?react";
@@ -69,6 +72,10 @@ export default function CreatePostModal() {
     const [cropInfos, setCropInfos] = useState<{
         [key: string]: { crop: { x: number; y: number }; zoom: number };
     }>({});
+    const [textArea, setTextArea] = useState("");
+    const formData = useRef<HTMLFormElement | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { userId } = useAuthStore();
 
     const setCropFunction = (image: string, func: () => void) => {
         cropRefs.current[image] = func;
@@ -139,11 +146,48 @@ export default function CreatePostModal() {
         }
     }, [state.step]);
 
+    const dataURLtoFile = useCallback(
+        async (dataUrl: string, extension = "jpg") => {
+            const blob = await fetch(dataUrl).then((res) => res.blob());
+            if (blob.size === 0) {
+                console.warn("Skipping empty file");
+                return null;
+            }
+            const uniqueFileName = `${uuidv4()}_${Date.now()}.${extension}`;
+            const file = new File([blob], uniqueFileName, {
+                type: "image/jpeg",
+            });
+            return file;
+        },
+        []
+    );
+
+    const handleSubmit = useCallback(
+        async (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            const formData = new FormData(event.currentTarget);
+            formData.delete("files");
+
+            for (const image of croppedImages) {
+                const file = await dataURLtoFile(image);
+                if (file) formData.append("files", file);
+            }
+
+            try {
+                const response = await axios.post("/api/feed/post", formData);
+                console.log(response.data);
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        [croppedImages, dataURLtoFile]
+    );
+
     return (
         <ModalContainer>
             <div
                 className={clsx(styles["create-post"], {
-                    [styles["create-post--active"]]: state.step === 3,
+                    [styles["create-post--active"]]: state.step === 2,
                 })}
             >
                 {state.step === 0 && (
@@ -165,11 +209,11 @@ export default function CreatePostModal() {
                                 </span>
                             </button>
                             <h2>
-                                {state.step !== 3
+                                {state.step !== 2
                                     ? "자르기"
                                     : "새 게시물 만들기"}
                             </h2>
-                            {state.step !== 3 ? (
+                            {state.step !== 2 ? (
                                 <button
                                     type="button"
                                     onClick={handleCropConfirm}
@@ -181,6 +225,11 @@ export default function CreatePostModal() {
                                 <button
                                     type="button"
                                     className={styles["create-post__next"]}
+                                    onClick={() => {
+                                        if (formData.current) {
+                                            formData.current.requestSubmit();
+                                        }
+                                    }}
                                 >
                                     <span>공유하기</span>
                                 </button>
@@ -247,7 +296,7 @@ export default function CreatePostModal() {
                                 </Slider>
                             </div>
                         )}
-                        {(state.step === 2 || state.step === 3) && (
+                        {state.step === 2 && (
                             <div className={styles["create-post__preview"]}>
                                 <Slider
                                     dots
@@ -269,16 +318,8 @@ export default function CreatePostModal() {
                                 </Slider>
                             </div>
                         )}
-                        <form action="">
-                            <input
-                                {...getInputProps()}
-                                type="file"
-                                accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime"
-                                multiple
-                            />
-                        </form>
                     </div>
-                    {state.step === 3 && (
+                    {state.step === 2 && (
                         <div className={styles["create-post__write"]}>
                             <div className={styles["create-post__inset"]}>
                                 <div className={styles["create-post__profile"]}>
@@ -304,12 +345,45 @@ export default function CreatePostModal() {
                                 <div
                                     className={styles["create-post__textarea"]}
                                 >
-                                    <textarea name="" id=""></textarea>
+                                    <textarea
+                                        name="text"
+                                        id="text"
+                                        value={textArea}
+                                        onChange={(e) =>
+                                            setTextArea(e.target.value)
+                                        }
+                                    ></textarea>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
+                <form
+                    onSubmit={handleSubmit}
+                    encType="multipart/form-data"
+                    ref={formData}
+                >
+                    <input
+                        {...getInputProps()}
+                        type="file"
+                        accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime"
+                        multiple
+                        name="files"
+                        ref={fileInputRef}
+                    />
+                    <input type="hidden" name="userId" value={userId} />
+                    <input
+                        type="hidden"
+                        name="feedId"
+                        value={`${userId}_${uuidv4()}_${Date.now()}`}
+                    />
+                    <input
+                        type="hidden"
+                        name="textAreaValue"
+                        value={textArea}
+                    />
+                    <button type="submit" style={{ display: "none" }}></button>
+                </form>
             </div>
         </ModalContainer>
     );

@@ -60,7 +60,7 @@ export default memo(function LoginForm({
     setText: (text: string) => void;
 }) {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { setTokenState } = useAuthStore();
+    const { setUserId, setTokenState } = useAuthStore();
 
     const mutation = useMutation({
         mutationFn: submitLoginData,
@@ -68,6 +68,7 @@ export default memo(function LoginForm({
             if (data.success === true) {
                 localStorage.setItem("accessToken", data.accessToken);
                 localStorage.setItem("refreshToken", data.refreshToken);
+                setUserId(data.userId);
                 setTokenState(!!data.accessToken, !!data.refreshToken);
             } else {
                 setText(data.message);

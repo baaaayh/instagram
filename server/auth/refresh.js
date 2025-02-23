@@ -53,6 +53,7 @@ async function refreshToken(req, res) {
 
                 res.status(200).json({
                     success: true,
+                    userId: user.id,
                     accessToken: newAccessToken,
                 });
             }

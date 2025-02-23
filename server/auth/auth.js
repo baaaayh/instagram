@@ -45,6 +45,7 @@ async function login(req, res) {
         res.json({
             success: true,
             message: "정상적으로 로그인되었습니다.",
+            userId: user.id,
             accessToken,
             refreshToken,
         });

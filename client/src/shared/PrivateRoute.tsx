@@ -31,6 +31,7 @@ async function getNewAccessToken(navigate: NavigateFunction) {
 
         if (response.status === 200) {
             localStorage.setItem("accessToken", data.accessToken);
+            useAuthStore.getState().setUserId(data.userId);
             useAuthStore.getState().setTokenState(true, true);
         } else if (response.status === 401) {
             alert(data.error);
