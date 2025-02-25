@@ -7,6 +7,14 @@
     justify-content: center;
     align-items: center;
     border-radius: 8px;
+    span {
+        display: inline-block;
+        padding: 0 15px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 32px;
+        color: #fff;
+    }
     &--blue {
         background-color: rgba(0, 149, 246, 0.7);
         &.active {
@@ -14,14 +22,16 @@
             cursor: pointer;
         }
     }
+    &--grey {
+        background-color: rgba(239, 239, 239);
+        span {
+            color: rgba(0, 0, 0);
+        }
+        &.active {
+            cursor: pointer;
+        }
+    }
     &--pd10 {
         padding: 0 10px;
-    }
-    span {
-        display: inline-block;
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 32px;
-        color: #fff;
     }
 }

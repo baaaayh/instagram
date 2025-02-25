@@ -1,24 +1,34 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
+import SideNavMenuIcon from "@/components/SideNavMenuIcon";
 import styles from "@/assets/styles/SideNavMenu.module.scss";
 
 export default memo(function SideNavMenuItem({
     link,
     title,
+    handleAction,
     icon,
 }: {
-    link: string;
+    link?: string;
     title: string;
+    handleAction?: () => void;
     icon: React.ReactElement;
 }) {
     return (
         <li className={styles["menu__item"]}>
-            <Link to={link} className={styles["menu__link"]}>
-                <div className={styles["menu__row"]}>
-                    <span className={styles["menu__icon"]}>{icon}</span>
-                    <span className={styles["menu__text"]}>{title}</span>
-                </div>
-            </Link>
+            {link ? (
+                <Link to={link} className={styles["menu__link"]}>
+                    <SideNavMenuIcon title={title} icon={icon} />
+                </Link>
+            ) : (
+                <button
+                    type="button"
+                    className={styles["menu__link"]}
+                    onClick={handleAction}
+                >
+                    <SideNavMenuIcon title={title} icon={icon} />
+                </button>
+            )}
         </li>
     );
 });

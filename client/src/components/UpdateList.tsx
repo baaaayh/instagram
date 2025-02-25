@@ -1,3 +1,3 @@
 export default function UpdateList() {
-    return <div>UpdateList</div>;
+    return <div></div>;
 }

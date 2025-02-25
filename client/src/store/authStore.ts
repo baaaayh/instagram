@@ -3,9 +3,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 interface AuthStore {
     userId: string;
+    userNickName: string;
     isAccessToken: boolean;
     isRefreshToken: boolean;
-    setUserId: (userId: string) => void;
+    setUserId: (userId: string, nickName: string) => void;
     setTokenState: (
         accessToken: boolean | null,
         refreshToken: boolean | null
@@ -17,11 +18,13 @@ export const useAuthStore = create<AuthStore>()(
     persist(
         (set) => ({
             userId: "",
+            userNickName: "",
             isAccessToken: false,
             isRefreshToken: false,
-            setUserId: (userId: string) => {
+            setUserId: (userId: string, userNickName: string) => {
                 set({
                     userId: userId,
+                    userNickName: userNickName,
                 });
             },
             setTokenState: (accessToken, refreshToken) => {
@@ -33,6 +36,7 @@ export const useAuthStore = create<AuthStore>()(
             resetTokenState: () =>
                 set({
                     userId: "",
+                    userNickName: "",
                     isAccessToken: false,
                     isRefreshToken: false,
                 }),
@@ -42,6 +46,7 @@ export const useAuthStore = create<AuthStore>()(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 userId: state.userId,
+                userNickName: state.userNickName,
                 isAccessToken: state.isAccessToken,
                 isRefreshToken: state.isRefreshToken,
             }),

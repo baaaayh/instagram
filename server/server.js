@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = path.join(
             "../client/public/feeds/images",
-            req.body.userId,
+            req.body.userNickName,
             req.body.feedId
         );
         fs.mkdir(dir, { recursive: true }, (err) => {
@@ -107,11 +107,11 @@ app.post("/api/accounts/validate", async function (req, res) {
 
 app.post("/api/feed/post", upload.array("files"), async function (req, res) {
     try {
-        const { userId, feedId, text } = req.body;
+        const { userNickName, feedId, textAreaValue } = req.body;
 
         await pool.query(
-            "INSERT INTO feeds (id, user_id, content) VALUES ($1, $2, $3)",
-            [feedId, userId, text]
+            "INSERT INTO feeds (id, user_nickname, content) VALUES ($1, $2, $3)",
+            [feedId, userNickName, textAreaValue]
         );
 
         const filePromises = req.files.map(async (file) => {
@@ -122,8 +122,14 @@ app.post("/api/feed/post", upload.array("files"), async function (req, res) {
                 .replace(/^.*\/client\/public\//, ""); // '../client/public/' 부분 제거
 
             await pool.query(
-                "INSERT INTO feedImages (id, user_id, feed_id, file_name, file_path) VALUES ($1, $2, $3, $4, $5)",
-                [`${feedId}-${fileName}`, userId, feedId, fileName, filePath]
+                "INSERT INTO feedImages (id, user_nickname, feed_id, file_name, file_path) VALUES ($1, $2, $3, $4, $5)",
+                [
+                    `${feedId}-${fileName}`,
+                    userNickName,
+                    feedId,
+                    fileName,
+                    filePath,
+                ]
             );
         });
 
@@ -140,15 +146,18 @@ app.post("/api/feed/post", upload.array("files"), async function (req, res) {
 });
 
 app.get("/api/feed/get", async function (req, res) {
-    const { userId } = req.query;
+    const { userNickName } = req.query;
     try {
         const result = await pool.query(
             `SELECT 
                 f.id AS feed_id,
-                f.user_id AS author_id,
-                u.username AS author_name,
+                f.user_nickname AS user_nickname,
+                u.username AS user_name,
+                u.nickname AS nickname,
+                u.profile_image,
                 f.content,
                 f.created_at AS feed_created_at,
+                EXTRACT(EPOCH FROM (NOW() - f.created_at)) AS time_diff_seconds,
                 COALESCE(
                     JSON_AGG(
                         JSON_BUILD_OBJECT(
@@ -157,15 +166,22 @@ app.get("/api/feed/get", async function (req, res) {
                         )
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
-                ) AS images
+                ) AS images,
+                CASE 
+                    WHEN l.user_nickname IS NOT NULL THEN true 
+                    ELSE false 
+                END AS is_liked,
+                COUNT(DISTINCT lt.user_nickname) AS like_count
             FROM feeds f
-            JOIN follows fo ON fo.following_id = f.user_id
-            JOIN users u ON u.id = f.user_id 
+            JOIN follows fo ON fo.following_nickname = f.user_nickname
+            JOIN users u ON u.nickname = f.user_nickname
             LEFT JOIN feedImages fi ON fi.feed_id = f.id
-            WHERE fo.follower_id = $1
-            GROUP BY f.id, f.user_id, u.username, f.content, f.created_at
+            LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $1
+            LEFT JOIN likes lt ON lt.feed_id = f.id
+            WHERE fo.follower_nickname = $1
+            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname
             ORDER BY f.created_at DESC`,
-            [userId]
+            [userNickName]
         );
 
         res.json({
@@ -178,26 +194,164 @@ app.get("/api/feed/get", async function (req, res) {
 });
 
 app.post("/api/follow/post", async function (req, res) {
-    const { followerId, followingId } = req.body;
+    const { isFollow, userNickName, nickName } = req.body.params;
+
     try {
         const existingFollow = await pool.query(
-            "SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2",
-            [followerId, followingId]
+            "SELECT 1 FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
+            [userNickName, nickName]
         );
 
         if (existingFollow.rowCount > 0) {
-            return { success: false, message: "이미 팔로우 중입니다." };
+            res.json({ success: false, message: "이미 팔로우 중입니다." });
         }
 
         await pool.query(
-            "INSERT INTO followers (follower_id, following_id) VALUES ($1, $2)",
-            [followerId, followingId]
+            "INSERT INTO follows (follower_nickname, following_nickname) VALUES ($1, $2)",
+            [userNickName, nickName]
         );
 
-        return { success: true, message: "팔로우 성공" };
+        res.json({ success: true, message: "팔로우 성공", isFollow });
     } catch (error) {
         console.error("팔로우 오류:", error);
-        return { success: false, message: "팔로우 중 오류가 발생했습니다." };
+        res.json({ success: false, message: "팔로우 중 오류가 발생했습니다." });
+    }
+});
+
+app.post("/api/follow/delete", async function (req, res) {
+    const { isFollow, userNickName, nickName } = req.body.params;
+
+    try {
+        await pool.query(
+            "DELETE FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
+            [userNickName, nickName]
+        );
+        res.json({ success: true, message: "팔로우 취소 성공", isFollow });
+    } catch (error) {
+        console.error("팔로우 오류:", error);
+    }
+});
+
+app.post("/api/feed/like", async function (req, res) {
+    const { like, feedId, userNickName } = req.body.params;
+
+    try {
+        await pool.query(
+            "INSERT INTO likes (user_nickname, feed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            [userNickName, feedId]
+        );
+
+        const likeCountResult = await pool.query(
+            "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
+            [feedId]
+        );
+
+        const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
+
+        res.json({
+            success: true,
+            is_liked: like,
+            like_count: likeCount,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "서버 오류 발생" });
+    }
+});
+
+app.post("/api/feed/unlike", async function (req, res) {
+    const { like, feedId, userNickName } = req.body.params;
+
+    try {
+        await pool.query(
+            "DELETE FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+            [userNickName, feedId]
+        );
+
+        const likeCountResult = await pool.query(
+            "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
+            [feedId]
+        );
+
+        const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
+
+        res.json({
+            success: true,
+            is_liked: like,
+            like_count: likeCount,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "서버 오류 발생" });
+    }
+});
+
+app.post("/api/user", async function (req, res) {
+    const { nickName, userNickName } = req.body.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT 
+                u.nickname, 
+                u.profile_image, 
+                u.intro, 
+                f.id AS feed_id,
+                f.content,
+                f.created_at,
+                COALESCE(JSONB_AGG(fi.file_path) FILTER (WHERE fi.file_path IS NOT NULL), '[]') AS file_paths,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM follows 
+                        WHERE follows.follower_nickname = $2 AND follows.following_nickname = u.nickname
+                    ) THEN true
+                    ELSE false
+                END AS is_following,
+                (SELECT COUNT(*) 
+                 FROM follows f2 
+                 WHERE f2.following_nickname = u.nickname) AS follower_count,
+                (SELECT COUNT(*) 
+                 FROM follows f3 
+                 WHERE f3.follower_nickname = u.nickname) AS following_count
+            FROM users u
+            LEFT JOIN feeds f ON u.nickname = f.user_nickname
+            LEFT JOIN feedImages fi ON f.id = fi.feed_id
+            WHERE u.nickname = $1
+            GROUP BY u.nickname, u.profile_image, u.intro, f.id, f.content, f.created_at;`,
+            [nickName, userNickName]
+        );
+
+        if (result.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ success: false, message: "User not found" });
+        }
+
+        const user = {
+            id: result.rows[0].user_id,
+            username: result.rows[0].username,
+            nickname: result.rows[0].nickname,
+            profile_image: result.rows[0].profile_image,
+            is_following: result.rows[0].is_following,
+            feeds: result.rows
+                .filter((row) => row.feed_id !== null)
+                .map((row) => ({
+                    feed_id: row.feed_id,
+                    content: row.content,
+                    created_at: row.created_at,
+                    images: row.file_paths,
+                })),
+            followers: Number(result.rows[0].follower_count),
+            followings: Number(result.rows[0].following_count),
+            intro: result.rows[0].intro,
+        };
+
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
 });
 

@@ -1,13 +1,15 @@
 import FeedHeader from "@/components/FeedHeader";
 import FeedBody from "@/components/FeedBody";
+import FeedFooter from "@/components/FeedFooter";
 import styles from "@/assets/styles/Feed.module.scss";
-import { FeedProps } from "@/components/FeedList";
+import { FeedProps } from "@/type";
 
 export default function Feed({ data }: { data: FeedProps }) {
     return (
         <div className={styles["feed"]}>
-            <FeedHeader />
+            <FeedHeader data={data} />
             <FeedBody data={data} />
+            <FeedFooter data={data} />
         </div>
     );
 }

@@ -1,0 +1,31 @@
+.feed-buttons {
+    &__inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    &__left {
+        ul {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}
+
+.button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    span {
+        display: inline-block;
+        font-size: 0;
+    }
+    &-like {
+        &--active {
+            color: rgba(255, 48, 64);
+        }
+    }
+}

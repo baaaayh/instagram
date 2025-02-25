@@ -22,7 +22,7 @@ async function getNewAccessToken(navigate: NavigateFunction) {
             {},
             {
                 headers: {
-                    "x-refresh-token": `Bearer ${refreshToken}`, // 리프레시 토큰을 헤더에 담아 전송
+                    "x-refresh-token": `Bearer ${refreshToken}`,
                 },
             }
         );
@@ -31,7 +31,7 @@ async function getNewAccessToken(navigate: NavigateFunction) {
 
         if (response.status === 200) {
             localStorage.setItem("accessToken", data.accessToken);
-            useAuthStore.getState().setUserId(data.userId);
+            useAuthStore.getState().setUserId(data.userId, data.userNickName);
             useAuthStore.getState().setTokenState(true, true);
         } else if (response.status === 401) {
             alert(data.error);
@@ -73,7 +73,7 @@ const PrivateRoute = () => {
                 navigate("/accounts/login");
             }
             if (isRefreshToken) {
-                navigate("/");
+                return;
             }
         }
     }, [isAccessToken, isRefreshToken, navigate, resetTokenState]);

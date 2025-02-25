@@ -8,9 +8,11 @@ import Reels from "@/assets/images/icons/icon_reels.svg?react";
 import Message from "@/assets/images/icons/icon_message.svg?react";
 import Heart from "@/assets/images/icons/icon_heart.svg?react";
 import Plus from "@/assets/images/icons/icon_plus.svg?react";
+import { useModalStore } from "@/store/modalStore";
 import ProfileIcon from "@/components/ProfileIcon";
 
 export default memo(function SideNavMenu() {
+    const { setOpenPostModal } = useModalStore();
     return (
         <div className={styles["menu"]}>
             <div className={styles["menu__inner"]}>
@@ -34,13 +36,13 @@ export default memo(function SideNavMenu() {
                     />
                     <SideNavMenuItem link={"/"} icon={<Heart />} title="알림" />
                     <SideNavMenuItem
-                        link={"/"}
+                        handleAction={setOpenPostModal}
                         icon={<Plus />}
                         title="만들기"
                     />
                     <SideNavMenuItem
                         link={"/"}
-                        icon={<ProfileIcon />}
+                        icon={<ProfileIcon width={24} height={24} />}
                         title="프로필"
                     />
                 </ul>

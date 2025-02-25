@@ -1,4 +1,11 @@
-import { useCallback, useRef, useState, useEffect, useReducer } from "react";
+import {
+    useCallback,
+    useRef,
+    useState,
+    useEffect,
+    useReducer,
+    memo,
+} from "react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import Slider, { CustomArrowProps } from "react-slick";
@@ -14,6 +21,7 @@ import Back from "@/assets/images/icons/icon_back.svg?react";
 import clsx from "clsx";
 import styles from "@/assets/styles/CreatePostModal.module.scss";
 import ProfileIcon from "./ProfileIcon";
+import { useModalStore } from "@/store/modalStore";
 
 export interface CroppedAreaType {
     x: number;
@@ -58,12 +66,14 @@ const reducer = (state: typeof initialState, action: { type: string }) => {
             return { step: state.step + 1 };
         case "PREV_STEP":
             return { step: state.step - 1 };
+        case "RESET":
+            return { step: 0 };
         default:
             return state;
     }
 };
 
-export default function CreatePostModal() {
+export default memo(function CreatePostModal() {
     const sliderRef = useRef<Slider | null>(null);
     const [filesURL, setFilesURL] = useState<string[]>([]);
     const cropRefs = useRef<{ [key: string]: () => void }>({});
@@ -75,7 +85,8 @@ export default function CreatePostModal() {
     const [textArea, setTextArea] = useState("");
     const formData = useRef<HTMLFormElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { userId } = useAuthStore();
+    const { userNickName } = useAuthStore();
+    const { isOpenPostModal, setClosePostModal } = useModalStore();
 
     const setCropFunction = (image: string, func: () => void) => {
         cropRefs.current[image] = func;
@@ -175,16 +186,22 @@ export default function CreatePostModal() {
 
             try {
                 const response = await axios.post("/api/feed/post", formData);
-                console.log(response.data);
+                if (response.data.success) {
+                    setFilesURL([]);
+                    setCroppedImages([]);
+                    setTextArea("");
+                    dispatch({ type: "RESET" });
+                    setClosePostModal();
+                }
             } catch (error) {
                 console.log(error);
             }
         },
-        [croppedImages, dataURLtoFile]
+        [croppedImages, dataURLtoFile, setClosePostModal]
     );
 
     return (
-        <ModalContainer>
+        <ModalContainer isOpen={isOpenPostModal} closeModal={setClosePostModal}>
             <div
                 className={clsx(styles["create-post"], {
                     [styles["create-post--active"]]: state.step === 2,
@@ -331,7 +348,10 @@ export default function CreatePostModal() {
                                                 styles["create-post__img"]
                                             }
                                         >
-                                            <ProfileIcon />
+                                            <ProfileIcon
+                                                width={24}
+                                                height={24}
+                                            />
                                         </span>
                                         <span
                                             className={
@@ -371,11 +391,15 @@ export default function CreatePostModal() {
                         name="files"
                         ref={fileInputRef}
                     />
-                    <input type="hidden" name="userId" value={userId} />
+                    <input
+                        type="hidden"
+                        name="userNickName"
+                        value={userNickName}
+                    />
                     <input
                         type="hidden"
                         name="feedId"
-                        value={`${userId}_${uuidv4()}_${Date.now()}`}
+                        value={`${userNickName}_${uuidv4()}_${Date.now()}`}
                     />
                     <input
                         type="hidden"
@@ -387,4 +411,4 @@ export default function CreatePostModal() {
             </div>
         </ModalContainer>
     );
-}
+});

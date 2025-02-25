@@ -1,0 +1,9 @@
+.feed-content {
+    font-size: 14px;
+    line-height: 18px;
+    &__id {
+        display: inline-block;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+}

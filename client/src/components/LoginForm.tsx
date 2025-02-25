@@ -1,4 +1,5 @@
 import { useReducer, useCallback, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import InputField from "@/components/InputField";
 import { useAuthStore } from "@/store/authStore";
@@ -61,6 +62,7 @@ export default memo(function LoginForm({
 }) {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { setUserId, setTokenState } = useAuthStore();
+    const navigate = useNavigate();
 
     const mutation = useMutation({
         mutationFn: submitLoginData,
@@ -68,8 +70,10 @@ export default memo(function LoginForm({
             if (data.success === true) {
                 localStorage.setItem("accessToken", data.accessToken);
                 localStorage.setItem("refreshToken", data.refreshToken);
-                setUserId(data.userId);
+                setUserId(data.userId, data.userNickName);
                 setTokenState(!!data.accessToken, !!data.refreshToken);
+
+                navigate("/");
             } else {
                 setText(data.message);
             }
