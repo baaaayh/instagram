@@ -6,6 +6,7 @@ import Comment from "@/assets/images/icons/icon_comment.svg?react";
 import Message from "@/assets/images/icons/icon_message.svg?react";
 import Save from "@/assets/images/icons/icon_save.svg?react";
 import styles from "@/assets/styles/FeedButtons.module.scss";
+
 export default memo(function FeedButtons({
     handleLike,
     isLike,

@@ -167,18 +167,22 @@ app.get("/api/feed/get", async function (req, res) {
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
                 ) AS images,
-                COALESCE(
-                    JSON_AGG(
+                -- 댓글 정보를 서브쿼리로 분리
+                (
+                    SELECT COALESCE(JSON_AGG(
                         JSON_BUILD_OBJECT(
                             'comment_id', c.id,
                             'user_nickname', c.user_nickname,
-                            'parent_comment_id', c.parent_comment_id, -- 큰따옴표 제거
+                            'parent_comment_id', c.parent_comment_id,
                             'comment', c.content,
                             'created_at', c.created_at,
                             'user_name', cu.username
                         )
-                    ) FILTER (WHERE c.id IS NOT NULL),
-                    '[]'
+                        ORDER BY c.created_at ASC
+                    ), '[]')
+                    FROM comments c
+                    LEFT JOIN users cu ON cu.nickname = c.user_nickname
+                    WHERE c.feed_id = f.id
                 ) AS comments,
                 CASE 
                     WHEN l.user_nickname IS NOT NULL THEN true 
@@ -189,13 +193,11 @@ app.get("/api/feed/get", async function (req, res) {
             JOIN follows fo ON fo.following_nickname = f.user_nickname
             JOIN users u ON u.nickname = f.user_nickname
             LEFT JOIN feedImages fi ON fi.feed_id = f.id
-            LEFT JOIN comments c ON c.feed_id = f.id
-            LEFT JOIN users cu ON cu.nickname = c.user_nickname -- 댓글 작성자 정보 조인
             LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $1
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE fo.follower_nickname = $1
-            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname, cu.username -- cu.username 추가
-            ORDER BY f.created_at DESC`,
+            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname
+            ORDER BY f.created_at DESC;`,
             [userNickName]
         );
 
@@ -205,6 +207,76 @@ app.get("/api/feed/get", async function (req, res) {
         });
     } catch (error) {
         console.log(error);
+    }
+});
+
+app.get("/api/feed/:id", async function (req, res) {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT 
+                f.id AS feed_id,
+                f.user_nickname AS user_nickname,
+                u.username AS user_name,
+                u.nickname AS nickname,
+                u.profile_image,
+                f.content,
+                f.created_at AS feed_created_at,
+                EXTRACT(EPOCH FROM (NOW() - f.created_at)) AS time_diff_seconds,
+                COALESCE(
+                    JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'file_path', fi.file_path,
+                            'file_name', fi.file_name
+                        )
+                    ) FILTER (WHERE fi.file_path IS NOT NULL),
+                    '[]'
+                ) AS images,
+                -- 댓글 정보
+                (
+                    SELECT COALESCE(JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'comment_id', c.id,
+                            'user_nickname', c.user_nickname,
+                            'parent_comment_id', c.parent_comment_id,
+                            'comment', c.content,
+                            'created_at', c.created_at,
+                            'user_name', cu.username
+                        )
+                        ORDER BY c.created_at ASC
+                    ), '[]')
+                    FROM comments c
+                    LEFT JOIN users cu ON cu.nickname = c.user_nickname
+                    WHERE c.feed_id = f.id
+                ) AS comments,
+                -- 좋아요 여부 체크
+                COUNT(l.user_nickname) > 0 AS is_liked,  -- COUNT를 사용하여 좋아요 여부를 체크
+                COUNT(DISTINCT lt.user_nickname) AS like_count
+            FROM feeds f
+            JOIN users u ON u.nickname = f.user_nickname
+            LEFT JOIN feedImages fi ON fi.feed_id = f.id
+            LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $2  -- 특정 사용자의 좋아요 체크
+            LEFT JOIN likes lt ON lt.feed_id = f.id
+            WHERE f.id = $1
+            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at;`,
+            [id, req.query.userNickName] // userNickName은 좋아요 여부 체크를 위해 필요함
+        );
+
+        // console.log(result.rows);
+
+        if (result.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ success: false, message: "피드를 찾을 수 없습니다." });
+        }
+
+        res.json({
+            success: true,
+            feedInfo: result.rows[0],
+        });
+    } catch (error) {
+        console.error("피드 조회 오류:", error);
+        res.status(500).json({ success: false, message: "서버 오류 발생" });
     }
 });
 
@@ -265,14 +337,24 @@ app.post("/api/follow/delete", async function (req, res) {
 });
 
 app.post("/api/feed/like", async function (req, res) {
-    const { like, feedId, userNickName } = req.body.params;
+    const { feedId, userNickName } = req.body.params;
 
     try {
+        // 좋아요 추가
         await pool.query(
             "INSERT INTO likes (user_nickname, feed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
             [userNickName, feedId]
         );
 
+        // 현재 좋아요 상태 확인
+        const isLikedResult = await pool.query(
+            "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+            [userNickName, feedId]
+        );
+
+        const isLiked = isLikedResult.rows[0].is_liked;
+
+        // 좋아요 수 카운트
         const likeCountResult = await pool.query(
             "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
             [feedId]
@@ -282,7 +364,7 @@ app.post("/api/feed/like", async function (req, res) {
 
         res.json({
             success: true,
-            is_liked: like,
+            is_liked: isLiked,
             like_count: likeCount,
         });
     } catch (error) {
@@ -292,14 +374,24 @@ app.post("/api/feed/like", async function (req, res) {
 });
 
 app.post("/api/feed/unlike", async function (req, res) {
-    const { like, feedId, userNickName } = req.body.params;
+    const { feedId, userNickName } = req.body.params;
 
     try {
+        // 좋아요 삭제
         await pool.query(
             "DELETE FROM likes WHERE user_nickname = $1 AND feed_id = $2",
             [userNickName, feedId]
         );
 
+        // 현재 좋아요 상태 확인
+        const isLikedResult = await pool.query(
+            "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+            [userNickName, feedId]
+        );
+
+        const isLiked = isLikedResult.rows[0].is_liked;
+
+        // 좋아요 수 카운트
         const likeCountResult = await pool.query(
             "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
             [feedId]
@@ -309,7 +401,7 @@ app.post("/api/feed/unlike", async function (req, res) {
 
         res.json({
             success: true,
-            is_liked: like,
+            is_liked: isLiked,
             like_count: likeCount,
         });
     } catch (error) {

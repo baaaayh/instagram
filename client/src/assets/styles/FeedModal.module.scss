@@ -27,7 +27,9 @@
         flex: 1;
     }
     &__inner {
+        overflow-y: auto;
         height: 100%;
+        max-height: 600px;
         padding: 15px;
     }
     &__header {
