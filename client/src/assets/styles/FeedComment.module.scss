@@ -1,0 +1,21 @@
+.feed-comment {
+    & + .feed-comment {
+        margin-top: 10px;
+    }
+    &__inner {
+        display: flex;
+        align-items: center;
+        column-gap: 10px;
+    }
+    &__user {
+        a {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(38, 38, 38);
+        }
+    }
+    &__text {
+        flex: 1;
+    }
+}

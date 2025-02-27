@@ -1,6 +1,8 @@
 import { useState, memo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { followUser, unfollowUser } from "@/api/followActions";
+import More from "@/assets/images/icons/icon_more.svg?react";
+import { useModalStore } from "@/store/modalStore";
 import styles from "@/assets/styles/UserHeader.module.scss";
 import { UserPageProps } from "@/type";
 
@@ -25,6 +27,7 @@ export default memo(function UserHeader({
 
     const [isFollow, setIsFollow] = useState(isFollowing);
     const queryClient = useQueryClient();
+    const { setOpenAccountModal } = useModalStore();
 
     const followMutation = useMutation({
         mutationFn: () => {
@@ -120,6 +123,19 @@ export default memo(function UserHeader({
                                             className="btn btn-round btn-round--grey active"
                                         >
                                             <span>메시지 보내기</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            className={
+                                                styles["user-header__more"]
+                                            }
+                                            onClick={setOpenAccountModal}
+                                        >
+                                            <span>
+                                                <More />더 보기
+                                            </span>
                                         </button>
                                     </li>
                                 </ul>

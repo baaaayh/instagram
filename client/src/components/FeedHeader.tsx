@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import FeedProfile from "@/components/FeedProfile";
 import More from "@/assets/images/icons/icon_more.svg?react";
 import styles from "@/assets/styles/FeedHeader.module.scss";
+import { useModalStore } from "@/store/modalStore";
 import { FeedProps } from "@/type";
 
 export default function FeedHeader({ data }: { data: FeedProps }) {
+    const { setOpenAccountModal } = useModalStore();
     const { profile_image, nickname, time_diff_seconds } = data;
 
     const formatTimeDifference = (seconds: number) => {
@@ -35,7 +37,7 @@ export default function FeedHeader({ data }: { data: FeedProps }) {
                     </span>
                 </div>
                 <div className={styles["feed-header__more"]}>
-                    <button type="button">
+                    <button type="button" onClick={setOpenAccountModal}>
                         <More />
                     </button>
                 </div>

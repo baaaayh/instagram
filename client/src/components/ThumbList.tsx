@@ -1,16 +1,18 @@
-// import ThumbListItem from "@/components/ThumbListItem";
+import ThumbListItem from "@/components/ThumbListItem";
 import styles from "@/assets/styles/ThumbList.module.scss";
-export default function ThumbList() {
+import { UserPageProps } from "@/type";
+export default function ThumbList({ data }: { data: UserPageProps }) {
     return (
         <div className={styles["thumb-list"]}>
             <ul>
-                {/* {FeedList.map(() => {
-                    return (
-                        <li>
-                            <ThumbListItem />
-                        </li>
-                    );
-                })} */}
+                {Array.isArray(data.user.feeds) &&
+                    data.user.feeds.map((feed) => {
+                        return (
+                            <li key={feed.feed_id}>
+                                <ThumbListItem data={data} feed={feed} />
+                            </li>
+                        );
+                    })}
             </ul>
         </div>
     );

@@ -201,7 +201,11 @@ export default memo(function CreatePostModal() {
     );
 
     return (
-        <ModalContainer isOpen={isOpenPostModal} closeModal={setClosePostModal}>
+        <ModalContainer
+            isOpen={isOpenPostModal}
+            isCloseButton={true}
+            closeModal={setClosePostModal}
+        >
             <div
                 className={clsx(styles["create-post"], {
                     [styles["create-post--active"]]: state.step === 2,

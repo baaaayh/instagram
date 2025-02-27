@@ -4,12 +4,19 @@ import FeedButtons from "@/components/FeedButtons";
 import FeedLikes from "@/components/FeedLikes";
 import FeedContent from "@/components/FeedContent";
 import FeedComments from "@/components/FeedComments";
+import FeedCommentInput from "@/components/FeedCommentInput";
 import styles from "@/assets/styles/FeedFooter.module.scss";
 import { useAuthStore } from "@/store/authStore";
 import { likeFeed, unlikeFeed } from "@/api/likeActions";
 import { FeedProps } from "@/type";
 
-export default memo(function FeedFooter({ data }: { data: FeedProps }) {
+export default memo(function FeedFooter({
+    data,
+    comments,
+}: {
+    data: FeedProps;
+    comments: boolean;
+}) {
     const queryClient = useQueryClient();
     const { feed_id, is_liked, like_count } = data;
     const { userNickName } = useAuthStore();
@@ -56,7 +63,8 @@ export default memo(function FeedFooter({ data }: { data: FeedProps }) {
                 />
                 <FeedLikes likes={likeCount} />
                 <FeedContent data={data} />
-                <FeedComments />
+                {comments && <FeedComments data={data} />}
+                <FeedCommentInput feedId={feed_id} parentCommentId={null} />
             </div>
         </div>
     );

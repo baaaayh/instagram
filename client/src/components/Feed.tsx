@@ -9,7 +9,7 @@ export default function Feed({ data }: { data: FeedProps }) {
         <div className={styles["feed"]}>
             <FeedHeader data={data} />
             <FeedBody data={data} />
-            <FeedFooter data={data} />
+            <FeedFooter data={data} comments={true} />
         </div>
     );
 }

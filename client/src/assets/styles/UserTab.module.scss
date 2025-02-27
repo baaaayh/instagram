@@ -1,0 +1,24 @@
+.user-tab {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    ul {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        column-gap: 100px;
+    }
+    &__button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        column-gap: 10px;
+        color: rgba(115, 115, 115);
+        cursor: pointer;
+        span {
+            display: inline-block;
+            font-size: 12px;
+            line-height: 52px;
+        }
+    }
+}

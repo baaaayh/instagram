@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 import SideNav from "@/components/SideNav";
 import CreatePostModal from "@/components/CreatePostModal";
+import AccountModal from "@/components/AccountModal";
+import FeedModal from "@/components/FeedModal";
 
 export default function Layout() {
     return (
@@ -12,6 +14,8 @@ export default function Layout() {
             </div>
             <SideNav />
             <CreatePostModal />
+            <AccountModal />
+            <FeedModal />
         </div>
     );
 }

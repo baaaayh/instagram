@@ -167,6 +167,19 @@ app.get("/api/feed/get", async function (req, res) {
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
                 ) AS images,
+                COALESCE(
+                    JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'comment_id', c.id,
+                            'user_nickname', c.user_nickname,
+                            'parent_comment_id', c.parent_comment_id, -- 큰따옴표 제거
+                            'comment', c.content,
+                            'created_at', c.created_at,
+                            'user_name', cu.username
+                        )
+                    ) FILTER (WHERE c.id IS NOT NULL),
+                    '[]'
+                ) AS comments,
                 CASE 
                     WHEN l.user_nickname IS NOT NULL THEN true 
                     ELSE false 
@@ -176,10 +189,12 @@ app.get("/api/feed/get", async function (req, res) {
             JOIN follows fo ON fo.following_nickname = f.user_nickname
             JOIN users u ON u.nickname = f.user_nickname
             LEFT JOIN feedImages fi ON fi.feed_id = f.id
+            LEFT JOIN comments c ON c.feed_id = f.id
+            LEFT JOIN users cu ON cu.nickname = c.user_nickname -- 댓글 작성자 정보 조인
             LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $1
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE fo.follower_nickname = $1
-            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname
+            GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname, cu.username -- cu.username 추가
             ORDER BY f.created_at DESC`,
             [userNickName]
         );
@@ -188,6 +203,23 @@ app.get("/api/feed/get", async function (req, res) {
             success: true,
             feedInfo: result.rows,
         });
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+app.post("/api/comment/post", upload.none(), async function (req, res) {
+    const { feed_id, user_nickname, parent_comment_id, comment } = req.body;
+
+    try {
+        const parentCommentId = parent_comment_id ? parent_comment_id : null;
+        const id = `${feed_id}-${user_nickname}-${Date.now()}`;
+        await pool.query(
+            "INSERT INTO comments (id, feed_id, user_nickname, parent_comment_id, content) VALUES ($1, $2, $3, $4, $5)",
+            [id, feed_id, user_nickname, parentCommentId, comment]
+        );
+
+        res.json({ success: true, message: "댓글 업로드 성공" });
     } catch (error) {
         console.log(error);
     }
@@ -298,7 +330,15 @@ app.post("/api/user", async function (req, res) {
                 f.id AS feed_id,
                 f.content,
                 f.created_at,
-                COALESCE(JSONB_AGG(fi.file_path) FILTER (WHERE fi.file_path IS NOT NULL), '[]') AS file_paths,
+                COALESCE(
+                    JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'file_path', fi.file_path,
+                            'file_name', fi.file_name
+                        )
+                    ) FILTER (WHERE fi.file_path IS NOT NULL),
+                    '[]'
+                ) AS images,
                 CASE 
                     WHEN EXISTS (
                         SELECT 1 FROM follows 
@@ -311,12 +351,29 @@ app.post("/api/user", async function (req, res) {
                  WHERE f2.following_nickname = u.nickname) AS follower_count,
                 (SELECT COUNT(*) 
                  FROM follows f3 
-                 WHERE f3.follower_nickname = u.nickname) AS following_count
+                 WHERE f3.follower_nickname = u.nickname) AS following_count,
+                -- 댓글 관련 추가
+                COALESCE(
+                    JSONB_AGG(
+                        JSONB_BUILD_OBJECT(
+                            'comment_id', c.id,
+                            'user_nickname', c.user_nickname,
+                            'parent_comment_id', c.parent_comment_id,
+                            'comment', c.content,
+                            'created_at', c.created_at,
+                            'user_name', cu.username
+                        )
+                    ) FILTER (WHERE c.id IS NOT NULL),
+                    '[]'
+                ) AS comments
             FROM users u
             LEFT JOIN feeds f ON u.nickname = f.user_nickname
             LEFT JOIN feedImages fi ON f.id = fi.feed_id
+            LEFT JOIN comments c ON f.id = c.feed_id -- 댓글 정보 조인
+            LEFT JOIN users cu ON cu.nickname = c.user_nickname -- 댓글 작성자 정보 조인
             WHERE u.nickname = $1
-            GROUP BY u.nickname, u.profile_image, u.intro, f.id, f.content, f.created_at;`,
+            GROUP BY u.nickname, u.profile_image, u.intro, f.id, f.content, f.created_at
+            ORDER BY f.created_at DESC;`,
             [nickName, userNickName]
         );
 
@@ -338,7 +395,8 @@ app.post("/api/user", async function (req, res) {
                     feed_id: row.feed_id,
                     content: row.content,
                     created_at: row.created_at,
-                    images: row.file_paths,
+                    images: row.images,
+                    comments: row.comments,
                 })),
             followers: Number(result.rows[0].follower_count),
             followings: Number(result.rows[0].following_count),

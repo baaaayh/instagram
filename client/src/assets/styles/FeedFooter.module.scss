@@ -4,4 +4,16 @@
         flex-direction: column;
         row-gap: 8px;
     }
+    &__comments {
+        button {
+            display: block;
+            font-size: 14px;
+            line-height: 18px;
+            color: rgba(115, 115, 115);
+            cursor: pointer;
+        }
+    }
+    &__likes {
+        padding: 0 10px;
+    }
 }

@@ -1,0 +1,38 @@
+.account-modal {
+    overflow: hidden;
+    max-width: 400px;
+    width: 100%;
+    border-radius: 12px;
+    background-color: #fff;
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    &__item {
+        & + .account-moal__item {
+            border-bottom: 1px solid rgba(219, 219, 219);
+        }
+        button {
+            display: inline-flex;
+            width: 100%;
+            cursor: pointer;
+            span {
+                display: inline-block;
+                width: 100%;
+                padding: 4px 8px;
+                font-size: 14px;
+                line-height: 48px;
+                text-align: center;
+            }
+        }
+        &--red {
+            button {
+                span {
+                    font-weight: 500;
+                    color: rgba(237, 73, 86);
+                }
+            }
+        }
+    }
+}
