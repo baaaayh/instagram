@@ -21,6 +21,9 @@ export default memo(function FeedFooter({
     const { feed_id, is_liked, like_count } = data;
     const { userNickName } = useAuthStore();
 
+    const FEED_LIST_QUERY_KEY = ["feedList", userNickName];
+    const FEED_DETAIL_QUERY_KEY = ["feedData", feed_id];
+
     const likeMutation = useMutation({
         mutationFn: async (userAction: "UNLIKE" | "LIKE") => {
             if (userAction === "LIKE") {
@@ -30,43 +33,74 @@ export default memo(function FeedFooter({
             }
         },
         onMutate: async (userAction) => {
+            await queryClient.cancelQueries({ queryKey: FEED_LIST_QUERY_KEY });
             await queryClient.cancelQueries({
-                queryKey: ["feedData", feed_id],
+                queryKey: FEED_DETAIL_QUERY_KEY,
             });
 
-            const prevData = queryClient.getQueryData(["feedData", feed_id]);
+            const prevFeedList = queryClient.getQueryData(FEED_LIST_QUERY_KEY);
+            const prevFeedDetail = queryClient.getQueryData(
+                FEED_DETAIL_QUERY_KEY
+            );
 
             queryClient.setQueryData(
-                ["feedData", feed_id],
-                (prev: FeedProps) => {
+                FEED_LIST_QUERY_KEY,
+                (oldFeeds: FeedProps[] | undefined) => {
+                    if (!oldFeeds) return oldFeeds;
+                    return oldFeeds.map((feed: FeedProps) =>
+                        feed.feed_id === feed_id
+                            ? {
+                                  ...feed,
+                                  is_liked: userAction === "LIKE",
+                                  like_count:
+                                      userAction === "LIKE"
+                                          ? feed.like_count + 1
+                                          : feed.like_count - 1,
+                              }
+                            : feed
+                    );
+                }
+            );
+
+            queryClient.setQueryData(
+                FEED_DETAIL_QUERY_KEY,
+                (oldFeed: FeedProps) => {
+                    if (!oldFeed) return oldFeed;
                     return {
-                        ...prev,
+                        ...oldFeed,
+                        is_liked: userAction === "LIKE",
                         like_count:
                             userAction === "LIKE"
-                                ? Number(prev.like_count) + 1
-                                : Number(prev.like_count) - 1,
-                        is_liked: userAction === "LIKE", // 상태를 수정
+                                ? oldFeed.like_count + 1
+                                : oldFeed.like_count - 1,
                     };
                 }
             );
 
-            return { prevData };
+            return { prevFeedList, prevFeedDetail };
         },
         onError: (error, _, context) => {
-            queryClient.setQueryData(["feedData", feed_id], context?.prevData);
+            console.log(error);
+            if (context?.prevFeedList) {
+                queryClient.setQueryData(
+                    FEED_LIST_QUERY_KEY,
+                    context.prevFeedList
+                );
+            }
+            if (context?.prevFeedDetail) {
+                queryClient.setQueryData(
+                    FEED_DETAIL_QUERY_KEY,
+                    context.prevFeedDetail
+                );
+            }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["feedData", feed_id], // 피드 데이터 무효화
-            });
-            queryClient.invalidateQueries({
-                queryKey: ["feedList", userNickName], // 피드 리스트 무효화
-            });
+            queryClient.invalidateQueries({ queryKey: FEED_LIST_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: FEED_DETAIL_QUERY_KEY });
         },
     });
 
     const handleLike = useCallback(() => {
-        console.log(is_liked);
         likeMutation.mutate(is_liked ? "UNLIKE" : "LIKE");
     }, [likeMutation, is_liked]);
 

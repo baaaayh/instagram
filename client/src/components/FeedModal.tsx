@@ -45,8 +45,6 @@ export default memo(function FeedModal() {
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading feed list</div>;
 
-    console.log(feedData);
-
     return (
         <ModalContainer isOpen={isOpenFeedModal} closeModal={setCloseFeedModal}>
             <div className={styles["feed-modal"]}>

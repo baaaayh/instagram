@@ -212,6 +212,8 @@ app.get("/api/feed/get", async function (req, res) {
 
 app.get("/api/feed/:id", async function (req, res) {
     const { id } = req.params;
+    const { userNickName } = req.query;
+    console.log(id, userNickName);
     try {
         const result = await pool.query(
             `SELECT 
@@ -259,10 +261,8 @@ app.get("/api/feed/:id", async function (req, res) {
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE f.id = $1
             GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at;`,
-            [id, req.query.userNickName] // userNickName은 좋아요 여부 체크를 위해 필요함
+            [id, userNickName] // userNickName은 좋아요 여부 체크를 위해 필요함
         );
-
-        // console.log(result.rows);
 
         if (result.rows.length === 0) {
             return res

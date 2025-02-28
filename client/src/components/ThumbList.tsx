@@ -9,7 +9,7 @@ export default function ThumbList({ data }: { data: UserPageProps }) {
                     data.user.feeds.map((feed) => {
                         return (
                             <li key={feed.feed_id}>
-                                <ThumbListItem data={data} feed={feed} />
+                                <ThumbListItem feed={feed} />
                             </li>
                         );
                     })}
