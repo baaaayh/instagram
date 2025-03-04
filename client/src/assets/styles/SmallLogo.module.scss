@@ -1,6 +1,9 @@
 .small-logo {
     margin-bottom: 20px;
     padding: 25px 12px 16px;
+    &--active {
+        padding: 12px;
+    }
     svg {
         color: inherit;
     }

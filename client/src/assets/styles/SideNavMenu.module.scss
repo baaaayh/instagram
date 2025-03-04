@@ -1,5 +1,10 @@
 .menu {
     flex: 1;
+    &--active {
+        .menu__text {
+            display: none;
+        }
+    }
     ul {
         display: flex;
         flex-direction: column;

@@ -1,15 +1,28 @@
-.side-nav {
+.nav-container {
     position: fixed;
     top: 0;
     left: 0;
+    display: flex;
     max-width: 335px;
     width: 100%;
     border-right: 1px solid rgba(219, 219, 219);
+    &--active {
+        border-right: 0;
+        .side-nav {
+            max-width: none;
+            width: auto;
+            z-index: 2;
+        }
+    }
+}
+.side-nav {
+    width: 100%;
     background-color: rgba(255, 255, 255);
     &__inner {
         display: flex;
         flex-direction: column;
         min-height: 100dvh;
         padding: 8px 12px 20px;
+        background-color: rgba(255, 255, 255);
     }
 }
