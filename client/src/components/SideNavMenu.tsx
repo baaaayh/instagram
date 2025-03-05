@@ -26,7 +26,7 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
         isOpenMoreMenu,
         setToggleMoreMenu,
     } = useNavStore();
-    const { resetTokenState } = useAuthStore();
+    const { userNickName, resetTokenState } = useAuthStore();
 
     return (
         <div
@@ -67,7 +67,7 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                         title="만들기"
                     />
                     <SideNavMenuItem
-                        link={"/"}
+                        link={`/${userNickName}`}
                         icon={<ProfileIcon width={24} height={24} />}
                         title="프로필"
                     />

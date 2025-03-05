@@ -2,6 +2,7 @@ import { useState, memo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { followUser, unFollowUser } from "@/api/followActions";
 import More from "@/assets/images/icons/icon_more.svg?react";
+import { useAuthStore } from "@/store/authStore";
 import { useModalStore } from "@/store/modalStore";
 import styles from "@/assets/styles/UserHeader.module.scss";
 import { UserPageProps } from "@/type";
@@ -28,6 +29,7 @@ export default memo(function UserHeader({
     const [isFollow, setIsFollow] = useState(isFollowing);
     const queryClient = useQueryClient();
     const { setOpenAccountModal } = useModalStore();
+    const { userNickName: myNickName } = useAuthStore();
 
     const followMutation = useMutation({
         mutationFn: () => {
@@ -104,6 +106,13 @@ export default memo(function UserHeader({
                                                 }
                                             >
                                                 <span>팔로잉</span>
+                                            </button>
+                                        ) : myNickName === nickName ? (
+                                            <button
+                                                type="button"
+                                                className="btn btn-round btn-round--grey"
+                                            >
+                                                <span>프로필 편집</span>
                                             </button>
                                         ) : (
                                             <button
