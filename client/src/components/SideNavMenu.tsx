@@ -7,9 +7,9 @@ import Search from "@/assets/images/icons/icon_search.svg?react";
 import SearchOn from "@/assets/images/icons/icon_search_on.svg?react";
 import Explorer from "@/assets/images/icons/icon_explore.svg?react";
 import ExplorerOn from "@/assets/images/icons/icon_explore_on.svg?react";
-import Reels from "@/assets/images/icons/icon_reels.svg?react";
-import Message from "@/assets/images/icons/icon_message.svg?react";
-import Heart from "@/assets/images/icons/icon_heart.svg?react";
+// import Reels from "@/assets/images/icons/icon_reels.svg?react";
+// import Message from "@/assets/images/icons/icon_message.svg?react";
+// import Heart from "@/assets/images/icons/icon_heart.svg?react";
 import Plus from "@/assets/images/icons/icon_plus.svg?react";
 import ProfileIcon from "@/components/ProfileIcon";
 import Hamburger from "@/assets/images/icons/icon_hamburger.svg?react";
@@ -54,13 +54,13 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                         activeIcon={<ExplorerOn />}
                         title="탐색"
                     />
-                    <SideNavMenuItem link={"/"} icon={<Reels />} title="릴스" />
+                    {/* <SideNavMenuItem link={"/"} icon={<Reels />} title="릴스" />
                     <SideNavMenuItem
                         link={"/"}
                         icon={<Message />}
                         title="메시지"
                     />
-                    <SideNavMenuItem link={"/"} icon={<Heart />} title="알림" />
+                    <SideNavMenuItem link={"/"} icon={<Heart />} title="알림" /> */}
                     <SideNavMenuItem
                         handleAction={setOpenPostModal}
                         icon={<Plus />}

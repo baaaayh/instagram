@@ -6,8 +6,6 @@ import styles from "@/assets/styles/ThumbListItem.module.scss";
 export default memo(function ThumbListItem({ feed }: { feed: FeedProps }) {
     const { setOpenFeedModal } = useModalStore();
 
-    console.log(feed);
-
     return (
         <div className={styles["thumb-item"]}>
             <button
