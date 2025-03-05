@@ -6,6 +6,7 @@ import HomeActive from "@/assets/images/icons/icon_home_on.svg?react";
 import Search from "@/assets/images/icons/icon_search.svg?react";
 import SearchOn from "@/assets/images/icons/icon_search_on.svg?react";
 import Explorer from "@/assets/images/icons/icon_explore.svg?react";
+import ExplorerOn from "@/assets/images/icons/icon_explore_on.svg?react";
 import Reels from "@/assets/images/icons/icon_reels.svg?react";
 import Message from "@/assets/images/icons/icon_message.svg?react";
 import Heart from "@/assets/images/icons/icon_heart.svg?react";
@@ -48,8 +49,9 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                         activeIcon={<SearchOn />}
                     />
                     <SideNavMenuItem
-                        link={"/"}
+                        link={"/explore"}
                         icon={<Explorer />}
+                        activeIcon={<ExplorerOn />}
                         title="탐색"
                     />
                     <SideNavMenuItem link={"/"} icon={<Reels />} title="릴스" />

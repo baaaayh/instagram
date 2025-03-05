@@ -7,7 +7,6 @@ import { UserDataProps } from "@/type";
 export default function SideNavSearchItem({ data }: { data: UserDataProps }) {
     const { setHistory } = useHistoryStore();
     const { nickname, profile_image, intro } = data;
-    console.log(nickname, profile_image, intro);
     return (
         <li>
             <div className={styles["account"]}>

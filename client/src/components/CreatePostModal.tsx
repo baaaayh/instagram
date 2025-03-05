@@ -82,7 +82,7 @@ export default memo(function CreatePostModal() {
     const [cropInfos, setCropInfos] = useState<{
         [key: string]: { crop: { x: number; y: number }; zoom: number };
     }>({});
-    const [textArea, setTextArea] = useState("");
+    const [textArea, setTextArea] = useState<string>("");
     const formData = useRef<HTMLFormElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { userNickName } = useAuthStore();
@@ -201,11 +201,7 @@ export default memo(function CreatePostModal() {
     );
 
     return (
-        <ModalContainer
-            isOpen={isOpenPostModal}
-            isCloseButton={true}
-            closeModal={setClosePostModal}
-        >
+        <ModalContainer isOpen={isOpenPostModal} closeModal={setClosePostModal}>
             <div
                 className={clsx(styles["create-post"], {
                     [styles["create-post--active"]]: state.step === 2,
@@ -372,7 +368,7 @@ export default memo(function CreatePostModal() {
                                     <textarea
                                         name="text"
                                         id="text"
-                                        value={textArea}
+                                        value={textArea || ""}
                                         onChange={(e) =>
                                             setTextArea(e.target.value)
                                         }

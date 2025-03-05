@@ -23,8 +23,9 @@ async function refreshToken(req, res) {
             decoded.id,
         ]);
 
-        const user = result.rows;
+        const user = result.rows[0];
 
+        console.log();
         if (user.length === 0) {
             return res.status(403).json({
                 success: false,
@@ -54,6 +55,10 @@ async function refreshToken(req, res) {
                 res.status(200).json({
                     success: true,
                     userId: user.id,
+                    userName: user.username,
+                    userNickName: user.nickname,
+                    userProfileImage: user.profile_image,
+                    userIntro: user.intro,
                     accessToken: newAccessToken,
                 });
             }
