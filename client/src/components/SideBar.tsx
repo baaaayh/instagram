@@ -1,3 +1,4 @@
+import { memo } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import SideBarUser from "@/components/SideBarUser";
@@ -17,7 +18,7 @@ async function fetchRecommendUsers(userNickName: string) {
     }
 }
 
-export default function SideBar() {
+export default memo(function SideBar() {
     const { userId, userName, userNickName, userProfileImage, userIntro } =
         useAuthStore();
 
@@ -70,4 +71,4 @@ export default function SideBar() {
             </div>
         </div>
     );
-}
+});

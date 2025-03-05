@@ -7,7 +7,8 @@ import clsx from "clsx";
 import styles from "@/assets/styles/SideNav.module.scss";
 
 export default memo(function SideNav() {
-    const { isWideNav, isOpenNavSearch, setCloseNavSearch } = useNavStore();
+    const { isWideNav, isOpenNavSearch, setCloseNavSearch, setCloseMoreMenu } =
+        useNavStore();
 
     useEffect(() => {
         function checkParentElement(e: MouseEvent) {
@@ -17,6 +18,7 @@ export default memo(function SideNav() {
                     !e.target.closest(".side-nav")
                 ) {
                     setCloseNavSearch();
+                    setCloseMoreMenu();
                 }
             }
         }
@@ -26,7 +28,7 @@ export default memo(function SideNav() {
         return () => {
             document.removeEventListener("click", checkParentElement);
         };
-    }, [setCloseNavSearch]);
+    }, [setCloseNavSearch, setCloseMoreMenu]);
 
     return (
         <div

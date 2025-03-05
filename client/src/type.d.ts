@@ -52,3 +52,17 @@ export interface UserDataProps {
     profile_image: string;
     intro: string;
 }
+
+export interface ThumbListItemProps {
+    feed_id: string;
+    text: string;
+    user: {
+        nickname: string;
+        profile_image: string;
+        intro: string;
+        followers: number;
+        followings: number;
+    };
+    images: string[];
+    is_following: boolean;
+}

@@ -1,3 +1,9 @@
+import ExploreContent from "@/components/ExploreContent";
+import styles from "@/assets/styles/Explore.module.scss";
 export default function Explore() {
-    return <div>explore</div>;
+    return (
+        <div className={styles["explore"]}>
+            <ExploreContent />
+        </div>
+    );
 }

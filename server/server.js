@@ -580,6 +580,82 @@ app.post("/api/search", async function (req, res) {
     }
 });
 
+app.get("/api/explore", async function (req, res) {
+    const { userNickName } = req.query.userNickName;
+    try {
+        // 피드와 사용자 정보를 가져오는 쿼리
+        const feedQuery = `
+            SELECT 
+                f.id AS feed_id,
+                f.content,
+                u.nickname,
+                u.profile_image,
+                u.intro,
+                -- 팔로워 수 계산
+                (SELECT COUNT(*) FROM follows WHERE following_nickname = u.nickname) AS followers,
+                -- 팔로잉 수 계산
+                (SELECT COUNT(*) FROM follows WHERE follower_nickname = u.nickname) AS followings,
+                COALESCE(
+                    JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'file_path', fi.file_path,
+                            'file_name', fi.file_name
+                        )
+                    ) FILTER (WHERE fi.file_path IS NOT NULL),
+                    '[]'
+                ) AS images,
+                -- 팔로우 여부 확인
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM follows 
+                        WHERE follower_nickname = $1 AND following_nickname = u.nickname
+                    ) THEN true
+                    ELSE false
+                END AS is_following
+            FROM feeds f
+            JOIN users u ON f.user_nickname = u.nickname
+            LEFT JOIN feedImages fi ON f.id = fi.feed_id  -- 피드와 관련된 이미지 정보 조인
+            GROUP BY f.id, u.nickname, u.profile_image, u.intro
+            ORDER BY RANDOM()
+            LIMIT 12;
+        `;
+
+        const result = await pool.query(feedQuery, [userNickName]); // 사용자 닉네임을 쿼리에 전달합니다.
+
+        if (result.rows.length === 0) {
+            return res
+                .status(404)
+                .json({ success: false, message: "No feeds found" });
+        }
+
+        const feeds = result.rows.map((feed) => ({
+            feed_id: feed.feed_id,
+            text: feed.content,
+            user: {
+                nickname: feed.nickname,
+                profile_image: feed.profile_image,
+                intro: feed.intro,
+                followers: feed.followers, // 팔로워 수
+                followings: feed.followings, // 팔로잉 수
+            },
+            images: feed.images, // 피드의 이미지 배열
+            is_following: feed.is_following, // 팔로우 여부
+        }));
+
+        res.json({
+            success: true,
+            feeds, // 랜덤으로 가져온 피드와 그 사용자 정보 반환
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
 app.listen(5000, function () {
     console.log("server is running...");
 });
