@@ -41,3 +41,10 @@ export interface UserPageProps {
         followings: number;
     };
 }
+
+export interface SideNavSearchItemProps {
+    username: string;
+    nickname: string;
+    profile_image: string;
+    intro: string;
+}

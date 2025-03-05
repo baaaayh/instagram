@@ -12,6 +12,7 @@
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
     z-index: 0;
     transition: 0.23s ease;
+    background-color: rgba(255, 255, 255);
     &--active {
         opacity: 1;
         visibility: visible;
@@ -66,6 +67,7 @@
         }
     }
 }
+
 .history {
     flex: 1;
     display: flex;
@@ -89,10 +91,16 @@
             }
         }
     }
-}
-
-.account {
-    &__inner {
-        padding: 8px 24px;
+    &__body {
+        height: 100%;
+        p {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 6px 24px 8px;
+            font-size: 14px;
+            color: rgba(115, 115, 115);
+        }
     }
 }

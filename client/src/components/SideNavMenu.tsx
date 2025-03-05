@@ -1,7 +1,8 @@
-import { Dispatch, memo } from "react";
+import { memo } from "react";
 import SideNavMenuItem from "@/components/SideNavMenuItem";
 import styles from "@/assets/styles/SideNavMenu.module.scss";
 import Home from "@/assets/images/icons/icon_home.svg?react";
+import HomeActive from "@/assets/images/icons/icon_home_on.svg?react";
 import Search from "@/assets/images/icons/icon_search.svg?react";
 import Explorer from "@/assets/images/icons/icon_explore.svg?react";
 import Reels from "@/assets/images/icons/icon_reels.svg?react";
@@ -10,16 +11,12 @@ import Heart from "@/assets/images/icons/icon_heart.svg?react";
 import Plus from "@/assets/images/icons/icon_plus.svg?react";
 import clsx from "clsx";
 import { useModalStore } from "@/store/modalStore";
+import { useNavStore } from "@/store/navStore";
 import ProfileIcon from "@/components/ProfileIcon";
 
-export default memo(function SideNavMenu({
-    navState,
-    setNavState,
-}: {
-    navState: boolean;
-    setNavState: Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
     const { setOpenPostModal } = useModalStore();
+    const { setToggleNavSearch } = useNavStore();
 
     return (
         <div
@@ -29,11 +26,16 @@ export default memo(function SideNavMenu({
         >
             <div className={styles["menu__inner"]}>
                 <ul>
-                    <SideNavMenuItem link={"/"} icon={<Home />} title="홈" />
+                    <SideNavMenuItem
+                        link={"/"}
+                        icon={<Home />}
+                        activeIcon={<HomeActive />}
+                        title="홈"
+                    />
                     <SideNavMenuItem
                         icon={<Search />}
                         title="검색"
-                        setNavState={setNavState}
+                        setToggleNavSearch={setToggleNavSearch}
                     />
                     <SideNavMenuItem
                         link={"/"}

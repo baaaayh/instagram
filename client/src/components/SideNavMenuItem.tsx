@@ -1,34 +1,56 @@
 import { Dispatch, memo } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import SideNavMenuIcon from "@/components/SideNavMenuIcon";
+import { useNavStore } from "@/store/navStore";
 import styles from "@/assets/styles/SideNavMenu.module.scss";
 
-export default memo(function SideNavMenuItem({
-    link,
-    title,
-    handleAction,
-    icon,
-    setNavState,
-}: {
+interface SideNavMenuItemProps {
     link?: string;
     title: string;
     handleAction?: () => void;
     icon: React.ReactElement;
-    setNavState?: Dispatch<React.SetStateAction<boolean>>;
-}) {
+    activeIcon?: React.ReactElement;
+    setToggleNavSearch?: Dispatch<React.SetStateAction<boolean>>;
+}
+
+const SideNavMenuItem = memo(function SideNavMenuItem({
+    link,
+    title,
+    handleAction,
+    icon,
+    activeIcon,
+    setToggleNavSearch,
+}: SideNavMenuItemProps) {
+    const { isOpenNavPanel } = useNavStore();
     return (
         <li className={styles["menu__item"]}>
             {link ? (
-                <Link to={link} className={styles["menu__link"]}>
-                    <SideNavMenuIcon title={title} icon={icon} />
-                </Link>
+                <NavLink
+                    to={link}
+                    className={({ isActive }) =>
+                        `${styles["menu__link"]} ${
+                            isActive ? styles["menu__link--active"] : ""
+                        }`
+                    }
+                >
+                    {({ isActive }) => (
+                        <SideNavMenuIcon
+                            title={title}
+                            icon={
+                                !isOpenNavPanel && isActive && activeIcon
+                                    ? activeIcon
+                                    : icon
+                            }
+                        />
+                    )}
+                </NavLink>
             ) : (
                 <button
                     type="button"
                     className={styles["menu__link"]}
                     onClick={() => {
                         handleAction?.();
-                        setNavState?.((prev) => !prev);
+                        setToggleNavSearch?.((prev) => !prev);
                     }}
                 >
                     <SideNavMenuIcon title={title} icon={icon} />
@@ -37,3 +59,5 @@ export default memo(function SideNavMenuItem({
         </li>
     );
 });
+
+export default SideNavMenuItem;

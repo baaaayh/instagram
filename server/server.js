@@ -505,6 +505,33 @@ app.post("/api/user", async function (req, res) {
     }
 });
 
+app.post("/api/search", async function (req, res) {
+    const { searchValue } = req.body.params;
+
+    try {
+        const query = `
+            SELECT username, nickname, profile_image, intro FROM users
+            WHERE nickname ILIKE $1
+            ORDER BY nickname ASC;
+        `;
+
+        const values = [`%${searchValue}%`];
+
+        const result = await pool.query(query, values);
+        const data = result.rows;
+
+        console.log(data);
+
+        res.json({
+            success: true,
+            searchData: data,
+        });
+    } catch (error) {
+        console.error("Error searching users:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 app.listen(5000, function () {
     console.log("server is running...");
 });
