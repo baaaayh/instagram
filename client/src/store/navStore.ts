@@ -2,26 +2,49 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 interface NavStore {
-    isOpenNavPanel: boolean;
+    isWideNav: boolean;
+    isOpenNavSearch: boolean;
+    isOpenMoreMenu: boolean;
     setOpenNavSearch: () => void;
     setCloseNavSearch: () => void;
     setToggleNavSearch: () => void;
+    setOpenMoreMenu: () => void;
+    setCloseMoreMenu: () => void;
+    setToggleMoreMenu: () => void;
 }
 
 export const useNavStore = create<NavStore>()(
     persist(
         (set) => ({
-            isOpenNavPanel: false,
-            setOpenNavSearch: () => set({ isOpenNavPanel: true }),
-            setCloseNavSearch: () => set({ isOpenNavPanel: false }),
+            isWideNav: false,
+            isOpenNavSearch: false,
+            isOpenMoreMenu: false,
+            setOpenNavSearch: () =>
+                set({
+                    isWideNav: true,
+                    isOpenNavSearch: true,
+                    isOpenMoreMenu: false,
+                }),
+            setCloseNavSearch: () =>
+                set({ isWideNav: false, isOpenNavSearch: false }),
             setToggleNavSearch: () =>
-                set((state) => ({ isOpenNavPanel: !state.isOpenNavPanel })), // ✅ 상태 기반으로 토글
+                set((state) => ({
+                    isWideNav: !state.isWideNav,
+                    isOpenNavSearch: !state.isOpenNavSearch,
+                    isOpenMoreMenu: false,
+                })),
+            setOpenMoreMenu: () => set({ isOpenMoreMenu: true }),
+            setCloseMoreMenu: () => set({ isOpenMoreMenu: false }),
+            setToggleMoreMenu: () =>
+                set((state) => ({ isOpenMoreMenu: !state.isOpenMoreMenu })),
         }),
         {
-            name: "modal-storage",
+            name: "nav-storage",
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
-                isOpenNavPanel: state.isOpenNavPanel,
+                isWideNav: state.isWideNav,
+                isOpenNavSearch: state.isOpenNavSearch,
+                isOpenMoreMenu: state.isOpenMoreMenu,
             }),
         }
     )

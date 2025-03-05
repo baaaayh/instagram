@@ -21,7 +21,7 @@ const SideNavMenuItem = memo(function SideNavMenuItem({
     activeIcon,
     setToggleNavSearch,
 }: SideNavMenuItemProps) {
-    const { isOpenNavPanel } = useNavStore();
+    const { isWideNav } = useNavStore();
     return (
         <li className={styles["menu__item"]}>
             {link ? (
@@ -37,7 +37,7 @@ const SideNavMenuItem = memo(function SideNavMenuItem({
                         <SideNavMenuIcon
                             title={title}
                             icon={
-                                !isOpenNavPanel && isActive && activeIcon
+                                !isWideNav && isActive && activeIcon
                                     ? activeIcon
                                     : icon
                             }
@@ -45,7 +45,8 @@ const SideNavMenuItem = memo(function SideNavMenuItem({
                     )}
                 </NavLink>
             ) : (
-                <button
+                <NavLink
+                    to={""}
                     type="button"
                     className={styles["menu__link"]}
                     onClick={() => {
@@ -53,8 +54,11 @@ const SideNavMenuItem = memo(function SideNavMenuItem({
                         setToggleNavSearch?.((prev) => !prev);
                     }}
                 >
-                    <SideNavMenuIcon title={title} icon={icon} />
-                </button>
+                    <SideNavMenuIcon
+                        title={title}
+                        icon={isWideNav && activeIcon ? activeIcon : icon}
+                    />
+                </NavLink>
             )}
         </li>
     );

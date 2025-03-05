@@ -42,6 +42,11 @@ export default memo(function FeedModal() {
         staleTime: 600000,
     });
 
+    const settings = {
+        slidePerView: 1,
+        dots: true,
+    };
+
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading feed list</div>;
 
@@ -54,7 +59,7 @@ export default memo(function FeedModal() {
                             <img src={feedData.images[0].file_path} alt="" />
                         </div>
                     ) : (
-                        <Slider>
+                        <Slider {...settings}>
                             {feedData &&
                                 feedData.images.map(
                                     (image: { file_path: string }) => (
@@ -91,32 +96,36 @@ export default memo(function FeedModal() {
                     </div>
                     <div className={styles["feed-modal__body"]}>
                         <div className={styles["feed-modal__inner"]}>
-                            <div className={styles["feed-modal__content"]}>
-                                {feedData?.content && (
-                                    <FeedComment
-                                        currentUser={feedData?.user_nickname}
-                                        data={feedData.content}
-                                    />
-                                )}
-                            </div>
-                            <div className={styles["feed-modal__comments"]}>
-                                {feedData?.comments.map(
-                                    (comment: CommentProps) => (
+                            <div className={styles["feed-modal__main"]}>
+                                <div className={styles["feed-modal__content"]}>
+                                    {feedData?.content && (
                                         <FeedComment
-                                            key={comment.comment_id}
                                             currentUser={
                                                 feedData?.user_nickname
                                             }
-                                            data={comment}
+                                            data={feedData.content}
                                         />
-                                    )
-                                )}
+                                    )}
+                                </div>
+                                <div className={styles["feed-modal__comments"]}>
+                                    {feedData?.comments
+                                        .reverse()
+                                        .map((comment: CommentProps) => (
+                                            <FeedComment
+                                                key={comment.comment_id}
+                                                currentUser={
+                                                    feedData?.user_nickname
+                                                }
+                                                data={comment}
+                                            />
+                                        ))}
+                                </div>
                             </div>
                         </div>
+                        {feedData && (
+                            <FeedFooter data={feedData} comments={false} />
+                        )}
                     </div>
-                    {feedData && (
-                        <FeedFooter data={feedData} comments={false} />
-                    )}
                 </div>
             </div>
         </ModalContainer>

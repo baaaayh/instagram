@@ -7,7 +7,7 @@ import clsx from "clsx";
 import styles from "@/assets/styles/SideNav.module.scss";
 
 export default memo(function SideNav() {
-    const { isOpenNavPanel, setCloseNavSearch } = useNavStore();
+    const { isWideNav, isOpenNavSearch, setCloseNavSearch } = useNavStore();
 
     useEffect(() => {
         function checkParentElement(e: MouseEvent) {
@@ -31,16 +31,16 @@ export default memo(function SideNav() {
     return (
         <div
             className={clsx(styles["nav-container"], {
-                [styles["nav-container--active"]]: isOpenNavPanel,
+                [styles["nav-container--active"]]: isWideNav,
             })}
         >
             <nav className={`side-nav ${styles["side-nav"]}`}>
                 <div className={styles["side-nav__inner"]}>
-                    <SmallLogo navState={isOpenNavPanel} />
-                    <SideNavMenu navState={isOpenNavPanel} />
+                    <SmallLogo navState={isWideNav} />
+                    <SideNavMenu navState={isWideNav} />
                 </div>
             </nav>
-            <SideNavSearch navState={isOpenNavPanel} />
+            <SideNavSearch navState={isOpenNavSearch} />
         </div>
     );
 });

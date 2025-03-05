@@ -147,6 +147,7 @@ app.post("/api/feed/post", upload.array("files"), async function (req, res) {
 
 app.get("/api/feed/get", async function (req, res) {
     const { userNickName } = req.query;
+
     try {
         const result = await pool.query(
             `SELECT 
@@ -213,7 +214,6 @@ app.get("/api/feed/get", async function (req, res) {
 app.get("/api/feed/:id", async function (req, res) {
     const { id } = req.params;
     const { userNickName } = req.query;
-    console.log(id, userNickName);
     try {
         const result = await pool.query(
             `SELECT 
@@ -243,9 +243,13 @@ app.get("/api/feed/:id", async function (req, res) {
                             'parent_comment_id', c.parent_comment_id,
                             'comment', c.content,
                             'created_at', c.created_at,
-                            'user_name', cu.username
+                            'user_name', cu.username,
+                            'user_id', cu.id,  -- 사용자 ID 추가
+                            'user_nickname', cu.nickname,  -- 사용자 닉네임 추가
+                            'profile_image', cu.profile_image,  -- 사용자 프로필 이미지 추가
+                            'intro', cu.intro  -- 사용자 소개 추가
                         )
-                        ORDER BY c.created_at ASC
+                        ORDER BY c.created_at DESC  -- 최신 댓글이 위로 오도록 정렬
                     ), '[]')
                     FROM comments c
                     LEFT JOIN users cu ON cu.nickname = c.user_nickname
@@ -261,7 +265,7 @@ app.get("/api/feed/:id", async function (req, res) {
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE f.id = $1
             GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at;`,
-            [id, userNickName] // userNickName은 좋아요 여부 체크를 위해 필요함
+            [id, userNickName]
         );
 
         if (result.rows.length === 0) {
@@ -307,18 +311,24 @@ app.post("/api/follow/post", async function (req, res) {
         );
 
         if (existingFollow.rowCount > 0) {
-            res.json({ success: false, message: "이미 팔로우 중입니다." });
+            return res.json({
+                success: false,
+                message: "이미 팔로우 중입니다.",
+            });
         }
 
         await pool.query(
-            "INSERT INTO follows (follower_nickname, following_nickname) VALUES ($1, $2)",
+            "INSERT INTO follows (follower_nickname, following_nickname) VALUES ($1, $2) ON CONFLICT DO NOTHING",
             [userNickName, nickName]
         );
 
         res.json({ success: true, message: "팔로우 성공", isFollow });
     } catch (error) {
         console.error("팔로우 오류:", error);
-        res.json({ success: false, message: "팔로우 중 오류가 발생했습니다." });
+        res.status(500).json({
+            success: false,
+            message: "팔로우 중 오류가 발생했습니다.",
+        });
     }
 });
 
@@ -501,6 +511,44 @@ app.post("/api/user", async function (req, res) {
         res.status(500).json({
             success: false,
             message: "Internal Server Error",
+        });
+    }
+});
+
+app.get("/api/user/recommend", async function (req, res) {
+    const userNickName = req.query.userNickName;
+
+    try {
+        const result = await pool.query(
+            `SELECT 
+                u.id, 
+                u.username, 
+                u.nickname, 
+                u.profile_image, 
+                u.intro,
+                CASE 
+                    WHEN f.following_nickname IS NOT NULL THEN true 
+                    ELSE false 
+                END AS is_following
+            FROM users u
+            LEFT JOIN follows f 
+                ON f.following_nickname = u.nickname 
+                AND f.follower_nickname = $1
+            WHERE u.nickname <> $1  -- 본인 제외
+            ORDER BY u.id  -- 순서 유지
+            LIMIT 5`,
+            [userNickName]
+        );
+
+        res.json({
+            success: true,
+            users: result.rows,
+        });
+    } catch (error) {
+        console.error("Error fetching recommended users:", error);
+        res.status(500).json({
+            success: false,
+            message: "서버 오류가 발생했습니다.",
         });
     }
 });

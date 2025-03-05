@@ -37,6 +37,7 @@ async function submitLoginData({
             const response = await axiosInstance.post("/accounts/login", {
                 params: { id, password },
             });
+
             return response.data;
         }
     } catch (error) {
@@ -61,7 +62,7 @@ export default memo(function LoginForm({
     setText: (text: string) => void;
 }) {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { setUserId, setTokenState } = useAuthStore();
+    const { setUser, setTokenState } = useAuthStore();
     const navigate = useNavigate();
 
     const mutation = useMutation({
@@ -70,7 +71,13 @@ export default memo(function LoginForm({
             if (data.success === true) {
                 localStorage.setItem("accessToken", data.accessToken);
                 localStorage.setItem("refreshToken", data.refreshToken);
-                setUserId(data.userId, data.userNickName);
+                setUser(
+                    data.userId,
+                    data.userNickName,
+                    data.userName,
+                    data.userProfileImage,
+                    data.userIntro
+                );
                 setTokenState(!!data.accessToken, !!data.refreshToken);
 
                 navigate("/");

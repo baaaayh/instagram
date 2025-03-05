@@ -19,7 +19,7 @@ export async function followUser({
     }
 }
 
-export async function unfollowUser({
+export async function unFollowUser({
     isFollow,
     userNickName,
     nickName,

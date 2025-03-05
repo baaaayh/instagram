@@ -2,9 +2,10 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import SideNavSearchItem from "@/components/SideNavSearchItem";
+import { useHistoryStore } from "@/store/historyStore";
 import clsx from "clsx";
 import styles from "@/assets/styles/SideNavSearch.module.scss";
-import { SideNavSearchItemProps } from "@/type";
+import { UserDataProps } from "@/type";
 
 async function fetchSearchData(inputValue: string) {
     if (!inputValue) return [];
@@ -13,8 +14,7 @@ async function fetchSearchData(inputValue: string) {
         const response = await axios.post("/api/search", {
             params: { searchValue: inputValue },
         });
-        const data = response.data.searchData;
-        return data;
+        return response.data.searchData;
     } catch (error) {
         console.error("Error fetching data:", error);
         return [];
@@ -22,6 +22,7 @@ async function fetchSearchData(inputValue: string) {
 }
 
 export default function SideNavSearch({ navState }: { navState: boolean }) {
+    const { history, resetHistory } = useHistoryStore();
     const [inputValue, setInputValue] = useState("");
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -72,34 +73,46 @@ export default function SideNavSearch({ navState }: { navState: boolean }) {
                     </div>
                 </div>
                 <div className={styles["history"]}>
-                    <div className={styles["history__header"]}>
-                        <h3>최근 검색 항목</h3>
-                        <button type="button">
-                            <span>모두 지우기</span>
-                        </button>
-                    </div>
                     <div className={styles["history__body"]}>
                         {isLoading && <p>검색 중...</p>}
                         {isError && <p>검색 오류 발생</p>}
                         {searchData ? (
                             searchData.length > 0 ? (
                                 <ul>
-                                    {searchData.map(
-                                        (item: SideNavSearchItemProps) => (
-                                            <SideNavSearchItem
-                                                key={item.nickname}
-                                                data={item}
-                                            />
-                                        )
-                                    )}
+                                    {searchData.map((item: UserDataProps) => (
+                                        <SideNavSearchItem
+                                            key={item.nickname}
+                                            data={item}
+                                        />
+                                    ))}
                                 </ul>
                             ) : (
                                 <p>검색 결과가 없습니다.</p>
                             )
                         ) : (
-                            <p>
-                                <b>최근 검색 내역 없음.</b>
-                            </p>
+                            <>
+                                <div className={styles["history__header"]}>
+                                    <h3>최근 검색 항목</h3>
+                                    <button
+                                        type="button"
+                                        onClick={resetHistory}
+                                    >
+                                        <span>모두 지우기</span>
+                                    </button>
+                                </div>
+                                {history.length > 0 ? (
+                                    history.map((item: UserDataProps) => (
+                                        <SideNavSearchItem
+                                            key={item.nickname}
+                                            data={item}
+                                        />
+                                    ))
+                                ) : (
+                                    <p>
+                                        <b>최근 검색 내역 없음.</b>
+                                    </p>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

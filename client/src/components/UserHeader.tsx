@@ -1,6 +1,6 @@
 import { useState, memo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { followUser, unfollowUser } from "@/api/followActions";
+import { followUser, unFollowUser } from "@/api/followActions";
 import More from "@/assets/images/icons/icon_more.svg?react";
 import { useModalStore } from "@/store/modalStore";
 import styles from "@/assets/styles/UserHeader.module.scss";
@@ -32,7 +32,7 @@ export default memo(function UserHeader({
     const followMutation = useMutation({
         mutationFn: () => {
             if (isFollow) {
-                return unfollowUser({ isFollow, userNickName, nickName });
+                return unFollowUser({ isFollow, userNickName, nickName });
             } else {
                 return followUser({ isFollow, userNickName, nickName });
             }

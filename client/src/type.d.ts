@@ -3,8 +3,10 @@ export interface CommentProps {
     comment_id: string;
     created_at: string;
     parent_comment_id: string | null;
+    user_id: string;
     user_name: string;
     user_nickname: string;
+    profile_image: string | null;
 }
 
 export interface FeedProps {
@@ -42,7 +44,9 @@ export interface UserPageProps {
     };
 }
 
-export interface SideNavSearchItemProps {
+export interface UserDataProps {
+    is_following: boolean;
+    id: string;
     username: string;
     nickname: string;
     profile_image: string;

@@ -1,0 +1,43 @@
+.user {
+    &__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 8px 16px;
+    }
+    &__profile {
+        display: flex;
+        align-items: center;
+        column-gap: 10px;
+    }
+    &__info {
+        display: flex;
+        flex-direction: column;
+    }
+    &__nickname {
+        a {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    }
+    &__name {
+        font-size: 13px;
+    }
+    &__button {
+        display: inline-flex;
+        cursor: pointer;
+        span {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(0, 149, 246);
+        }
+        &--bk {
+            span {
+                color: rgba(0, 0, 0);
+            }
+        }
+    }
+}
