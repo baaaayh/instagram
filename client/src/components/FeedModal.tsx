@@ -76,9 +76,9 @@ export default function FeedModal() {
                 <div className={styles["feed-modal__right"]}>
                     <div className={styles["feed-modal__header"]}>
                         <div className={styles["feed-modal__user"]}>
-                            <div className={styles["feed-modal__user__img"]}>
+                            <div className={styles["feed-modal__figure"]}>
                                 <Link to={`/${feedData?.user_nickname}`}>
-                                    <ProfileIcon width={24} height={24} />
+                                    <ProfileIcon width={32} height={32} />
                                 </Link>
                             </div>
                             <div className={styles["feed-modal__user__id"]}>
@@ -101,9 +101,7 @@ export default function FeedModal() {
                                 <div className={styles["feed-modal__content"]}>
                                     {feedData?.content && (
                                         <FeedComment
-                                            currentUser={
-                                                feedData?.user_nickname
-                                            }
+                                            user={feedData?.user_nickname}
                                             data={feedData.content}
                                         />
                                     )}
@@ -121,9 +119,7 @@ export default function FeedModal() {
                                                 }
                                             >
                                                 <FeedComment
-                                                    currentUser={
-                                                        feedData.user_nickname
-                                                    }
+                                                    user={comment.user_nickname}
                                                     data={comment}
                                                 />
                                             </Suspense>

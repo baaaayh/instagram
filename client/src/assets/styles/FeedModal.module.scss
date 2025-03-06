@@ -73,6 +73,14 @@
         align-items: center;
         column-gap: 10px;
     }
+    &__figure {
+        display: block;
+        font-size: 0;
+        a {
+            display: inline-block;
+            font-size: 0;
+        }
+    }
     &__more {
         font-size: 0;
         button {

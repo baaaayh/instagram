@@ -6,25 +6,27 @@ import styles from "@/assets/styles/FeedComment.module.scss";
 
 export default memo(function FeedComment({
     data,
-    currentUser,
+    user,
 }: {
     data: CommentProps | string;
-    currentUser: string;
+    user: string;
 }) {
     return (
         <div className={styles["feed-comment"]}>
             <div className={styles["feed-comment__inner"]}>
                 <div className={styles["feed-comment__user"]}>
                     <div className={styles["feed-comment__figure"]}>
-                        {typeof data !== "string" && data.profile_image ? (
-                            <img src={data.profile_image} alt="" />
-                        ) : (
-                            <ProfileIcon width={32} height={32} />
-                        )}
+                        <Link to={`/${user}`}>
+                            {typeof data !== "string" && data.profile_image ? (
+                                <img src={data.profile_image} alt="" />
+                            ) : (
+                                <ProfileIcon width={32} height={32} />
+                            )}
+                        </Link>
                     </div>
                 </div>
                 <div className={styles["feed-comment__text"]}>
-                    <Link to={`/${currentUser}`}>{currentUser}</Link>
+                    <Link to={`/${user}`}>{user}</Link>
                     <div className={styles["feed-comment__row"]}>
                         {typeof data === "string" ? data : data.comment}
                     </div>
