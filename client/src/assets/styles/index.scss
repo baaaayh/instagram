@@ -66,6 +66,15 @@ input {
 
 @media screen and (max-width: 765px) {
     .view {
+        padding-top: 66px;
         padding-left: 0;
+    }
+}
+
+@media screen and (max-width: 470px) {
+    .view {
+        &__inner {
+            display: block;
+        }
     }
 }

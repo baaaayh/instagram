@@ -11,15 +11,13 @@ export default memo(function FeedBody({ data }: { data: FeedProps }) {
             <div className={styles["feed-body"]}>
                 <div className={styles["feed-body__inner"]}>
                     {data.images.length <= 1 ? (
-                        <div>
-                            <div key={data.images[0].file_name}>
-                                <img
-                                    src={`${import.meta.env.VITE_PUBLIC_URL}${
-                                        data.images[0].file_path
-                                    }`}
-                                    alt=""
-                                />
-                            </div>
+                        <div key={data.images[0].file_name}>
+                            <img
+                                src={`${import.meta.env.VITE_PUBLIC_URL}${
+                                    data.images[0].file_path
+                                }`}
+                                alt=""
+                            />
                         </div>
                     ) : (
                         <Slider>

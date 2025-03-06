@@ -2,3 +2,9 @@
     width: 100%;
     padding: 24px 20px;
 }
+
+@media screen and (max-width: 765px) {
+    .explore {
+        padding: 8px;
+    }
+}

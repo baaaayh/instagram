@@ -4,3 +4,9 @@
     justify-content: center;
     column-gap: 64px;
 }
+
+@media screen and (max-width: 470px) {
+    .home {
+        display: block;
+    }
+}

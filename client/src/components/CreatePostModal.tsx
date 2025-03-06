@@ -272,6 +272,9 @@ export default memo(function CreatePostModal() {
                                         type="button"
                                         className="btn btn-round btn-round--blue btn-round--pd10 active"
                                         style={{ cursor: "pointer" }}
+                                        onClick={() =>
+                                            fileInputRef.current?.click()
+                                        }
                                     >
                                         <span>컴퓨터에서 선택</span>
                                     </button>
