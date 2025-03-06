@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Slider from "react-slick";
@@ -76,10 +77,14 @@ export default function FeedModal() {
                     <div className={styles["feed-modal__header"]}>
                         <div className={styles["feed-modal__user"]}>
                             <div className={styles["feed-modal__user__img"]}>
-                                <ProfileIcon width={24} height={24} />
+                                <Link to={`/${feedData?.user_nickname}`}>
+                                    <ProfileIcon width={24} height={24} />
+                                </Link>
                             </div>
                             <div className={styles["feed-modal__user__id"]}>
-                                {feedData?.user_nickname}
+                                <Link to={`/${feedData?.user_nickname}`}>
+                                    {feedData?.user_nickname}
+                                </Link>
                             </div>
                         </div>
                         <div className={styles["feed-modal__more"]}>
