@@ -1,6 +1,7 @@
+import { memo } from "react";
 import Image from "@/assets/images/icons/icon_profile.jpg";
 import styles from "@/assets/styles/ProfileIcon.module.scss";
-export default function ProfileIcon({
+export default memo(function ProfileIcon({
     width,
     height,
 }: {
@@ -12,4 +13,4 @@ export default function ProfileIcon({
             <img src={Image} alt="" />
         </div>
     );
-}
+});

@@ -1,8 +1,21 @@
 .home {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    column-gap: 64px;
+    max-width: 1024px;
+    width: 100%;
+    margin: 0 auto;
+    &__inner {
+        position: relative;
+        padding-right: 300px;
+    }
+}
+
+@media screen and (max-width: 1165px) {
+    .home {
+        max-width: none;
+        width: auto;
+        &__inner {
+            padding-right: 0;
+        }
+    }
 }
 
 @media screen and (max-width: 470px) {

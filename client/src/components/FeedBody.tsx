@@ -1,7 +1,5 @@
 import { memo } from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import FeedSlider from "@/components/FeedSlider";
 import styles from "@/assets/styles/FeedBody.module.scss";
 import { FeedProps } from "@/type";
 
@@ -20,18 +18,7 @@ export default memo(function FeedBody({ data }: { data: FeedProps }) {
                             />
                         </div>
                     ) : (
-                        <Slider>
-                            {data.images.map((image) => (
-                                <div key={image.file_name}>
-                                    <img
-                                        src={`${
-                                            import.meta.env.VITE_PUBLIC_URL
-                                        }${image.file_path}`}
-                                        alt=""
-                                    />
-                                </div>
-                            ))}
-                        </Slider>
+                        <FeedSlider data={data} />
                     )}
                 </div>
             </div>

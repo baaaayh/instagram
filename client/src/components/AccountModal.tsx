@@ -9,7 +9,6 @@ export default memo(function UserModal() {
     return (
         <ModalContainer
             isOpen={isOpenAccountModal}
-            isCloseButton={false}
             closeModal={setCloseAccountModal}
         >
             <div className={styles["account-modal"]}>

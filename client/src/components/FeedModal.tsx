@@ -1,18 +1,20 @@
-import { memo } from "react";
+import { lazy, Suspense } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import ProfileIcon from "@/components/ProfileIcon";
-import ModalContainer from "@/components/ModalContainer";
-import More from "@/assets/images/icons/icon_more.svg?react";
-import FeedComment from "@/components/FeedComment";
-import FeedFooter from "@/components/FeedFooter";
 import { useModalStore } from "@/store/modalStore";
 import { useAuthStore } from "@/store/authStore";
 import { CommentProps } from "@/type";
 import styles from "@/assets/styles/FeedModal.module.scss";
+
+const ProfileIcon = lazy(() => import("@/components/ProfileIcon"));
+const ModalContainer = lazy(() => import("@/components/ModalContainer"));
+const More = lazy(() => import("@/assets/images/icons/icon_more.svg?react"));
+const FeedComment = lazy(() => import("@/components/FeedComment"));
+const FeedFooter = lazy(() => import("@/components/FeedFooter"));
+const FeedSliderItem = lazy(() => import("@/components/FeedSliderItem"));
 
 async function fetchFeedData(feedId: string) {
     const response = await axios.get(`/api/feed/${feedId}`, {
@@ -21,7 +23,7 @@ async function fetchFeedData(feedId: string) {
     return response.data.feedInfo;
 }
 
-export default memo(function FeedModal() {
+export default function FeedModal() {
     const {
         currentFeedId: feedId,
         isOpenFeedModal,
@@ -62,16 +64,10 @@ export default memo(function FeedModal() {
                         <Slider {...settings}>
                             {feedData &&
                                 feedData.images.map(
-                                    (image: { file_path: string }) => (
-                                        <div
-                                            key={image.file_path}
-                                            className={
-                                                styles["feed-modal__slide"]
-                                            }
-                                        >
-                                            <img src={image.file_path} alt="" />
-                                        </div>
-                                    )
+                                    (image: {
+                                        file_path: string;
+                                        file_name: string;
+                                    }) => <FeedSliderItem image={image} />
                                 )}
                         </Slider>
                     )}
@@ -111,23 +107,33 @@ export default memo(function FeedModal() {
                                     {feedData?.comments
                                         .reverse()
                                         .map((comment: CommentProps) => (
-                                            <FeedComment
+                                            <Suspense
                                                 key={comment.comment_id}
-                                                currentUser={
-                                                    feedData?.user_nickname
+                                                fallback={
+                                                    <div>
+                                                        Loading comment...
+                                                    </div>
                                                 }
-                                                data={comment}
-                                            />
+                                            >
+                                                <FeedComment
+                                                    currentUser={
+                                                        feedData.user_nickname
+                                                    }
+                                                    data={comment}
+                                                />
+                                            </Suspense>
                                         ))}
                                 </div>
                             </div>
                         </div>
                         {feedData && (
-                            <FeedFooter data={feedData} comments={false} />
+                            <Suspense fallback={<div>Loading footer...</div>}>
+                                <FeedFooter data={feedData} comments={false} />
+                            </Suspense>
                         )}
                     </div>
                 </div>
             </div>
         </ModalContainer>
     );
-});
+}

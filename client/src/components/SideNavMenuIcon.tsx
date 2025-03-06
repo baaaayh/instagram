@@ -1,6 +1,7 @@
+import { memo } from "react";
 import styles from "@/assets/styles/SideNavMenu.module.scss";
 
-export default function SideNavMenuIcon({
+export default memo(function SideNavMenuIcon({
     title,
     icon,
 }: {
@@ -13,4 +14,4 @@ export default function SideNavMenuIcon({
             <span className={styles["menu__text"]}>{title}</span>
         </div>
     );
-}
+});

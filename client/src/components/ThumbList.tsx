@@ -1,4 +1,6 @@
-import ThumbListItem from "@/components/ThumbListItem";
+import { memo, lazy, Suspense } from "react";
+const ThumbListItem = lazy(() => import("@/components/ThumbListItem"));
+import SpinnerComponent from "@/components/SpinnerComponent";
 import styles from "@/assets/styles/ThumbList.module.scss";
 import { UserPageProps, ThumbListItemProps } from "@/type";
 
@@ -6,7 +8,7 @@ type ThumbListProps = {
     data: UserPageProps | ThumbListItemProps;
 };
 
-export default function ThumbList({ data }: ThumbListProps) {
+export default memo(function ThumbList({ data }: ThumbListProps) {
     const feeds =
         data && data.user && "feeds" in data.user ? data.user.feeds : data;
 
@@ -17,12 +19,17 @@ export default function ThumbList({ data }: ThumbListProps) {
                     feeds.map((feed) => {
                         // console.log(feed);
                         return (
-                            <li key={feed.feed_id}>
-                                <ThumbListItem feed={feed} />
-                            </li>
+                            <Suspense
+                                key={feed.feed_id}
+                                fallback={<SpinnerComponent />}
+                            >
+                                <li>
+                                    <ThumbListItem feed={feed} />
+                                </li>
+                            </Suspense>
                         );
                     })}
             </ul>
         </div>
     );
-}
+});

@@ -40,13 +40,13 @@ function reducer(state: TabsProps, action: { type: string }) {
 export default memo(function User() {
     const { nickName } = useParams();
     const { userNickName } = useAuthStore();
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     const { data, error, isLoading } = useQuery({
         queryKey: ["userPageData", nickName],
         queryFn: () => fetchUserData(nickName, userNickName),
         enabled: !!nickName,
     });
-    const [state, dispatch] = useReducer(reducer, initialState);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading user data</div>;

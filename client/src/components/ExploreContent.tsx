@@ -1,6 +1,8 @@
+import { lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import ThumbList from "@/components/ThumbList";
+const ThumbList = lazy(() => import("@/components/ThumbList"));
+import SpinnerComponent from "@/components/SpinnerComponent";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/assets/styles/ExploreContent.module.scss";
 
@@ -34,7 +36,9 @@ export default function ExploreContent() {
 
     return (
         <div className={styles["explore-content"]}>
-            <ThumbList data={thumbListData.feeds} />
+            <Suspense fallback={<SpinnerComponent />}>
+                <ThumbList data={thumbListData.feeds} />
+            </Suspense>
         </div>
     );
 }

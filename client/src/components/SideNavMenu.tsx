@@ -7,9 +7,6 @@ import Search from "@/assets/images/icons/icon_search.svg?react";
 import SearchOn from "@/assets/images/icons/icon_search_on.svg?react";
 import Explorer from "@/assets/images/icons/icon_explore.svg?react";
 import ExplorerOn from "@/assets/images/icons/icon_explore_on.svg?react";
-// import Reels from "@/assets/images/icons/icon_reels.svg?react";
-// import Message from "@/assets/images/icons/icon_message.svg?react";
-// import Heart from "@/assets/images/icons/icon_heart.svg?react";
 import Plus from "@/assets/images/icons/icon_plus.svg?react";
 import ProfileIcon from "@/components/ProfileIcon";
 import Hamburger from "@/assets/images/icons/icon_hamburger.svg?react";
@@ -30,57 +27,56 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
     const { userNickName, resetTokenState } = useAuthStore();
     const { width: windowWidth } = useWindowSizeStore();
 
+    const navMenuData = [
+        { link: "/", icon: <Home />, activeIcon: <HomeActive />, title: "홈" },
+        {
+            icon: <Search />,
+            activeIcon: <SearchOn />,
+            title: "검색",
+            action: setToggleNavSearch,
+            hidden: windowWidth <= 765,
+        },
+        {
+            link: "/explore",
+            icon: <Explorer />,
+            activeIcon: <ExplorerOn />,
+            title: "탐색",
+        },
+        { action: setOpenPostModal, icon: <Plus />, title: "만들기" },
+        {
+            link: `/${userNickName}`,
+            icon: <ProfileIcon width={24} height={24} />,
+            title: "프로필",
+        },
+    ];
+
     return (
         <div
-            className={clsx(styles["menu"], {
+            className={clsx(styles.menu, {
                 [styles["menu--active"]]: navState,
             })}
         >
-            <div className={styles["menu__inner"]}>
+            <div className={styles.menu__inner}>
                 <ul>
-                    <SideNavMenuItem
-                        link={"/"}
-                        icon={<Home />}
-                        activeIcon={<HomeActive />}
-                        title="홈"
-                    />
-                    {windowWidth > 765 && (
-                        <SideNavMenuItem
-                            icon={<Search />}
-                            title="검색"
-                            setToggleNavSearch={setToggleNavSearch}
-                            activeIcon={<SearchOn />}
-                        />
+                    {navMenuData.map(
+                        ({ link, icon, activeIcon, title, action, hidden }) =>
+                            !hidden && (
+                                <SideNavMenuItem
+                                    key={title}
+                                    link={link}
+                                    icon={icon}
+                                    activeIcon={activeIcon}
+                                    title={title}
+                                    handleAction={action}
+                                />
+                            )
                     )}
-                    <SideNavMenuItem
-                        link={"/explore"}
-                        icon={<Explorer />}
-                        activeIcon={<ExplorerOn />}
-                        title="탐색"
-                    />
-                    {/* <SideNavMenuItem link={"/"} icon={<Reels />} title="릴스" />
-                    <SideNavMenuItem
-                        link={"/"}
-                        icon={<Message />}
-                        title="메시지"
-                    />
-                    <SideNavMenuItem link={"/"} icon={<Heart />} title="알림" /> */}
-                    <SideNavMenuItem
-                        handleAction={setOpenPostModal}
-                        icon={<Plus />}
-                        title="만들기"
-                    />
-                    <SideNavMenuItem
-                        link={`/${userNickName}`}
-                        icon={<ProfileIcon width={24} height={24} />}
-                        title="프로필"
-                    />
                 </ul>
             </div>
             {windowWidth > 765 && (
-                <div className={styles["menu__more"]}>
+                <div className={styles.menu__more}>
                     {isOpenMoreMenu && (
-                        <div className={styles["menu__float"]}>
+                        <div className={styles.menu__float}>
                             <ul>
                                 <li>
                                     <button
@@ -99,7 +95,7 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                     <button
                         type="button"
                         onClick={setToggleMoreMenu}
-                        className={styles["menu__toggle"]}
+                        className={styles.menu__toggle}
                     >
                         <Hamburger />
                         <strong>더 보기</strong>

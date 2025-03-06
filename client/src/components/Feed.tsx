@@ -1,10 +1,11 @@
-import FeedHeader from "@/components/FeedHeader";
-import FeedBody from "@/components/FeedBody";
-import FeedFooter from "@/components/FeedFooter";
+import { memo, lazy } from "react";
+const FeedHeader = lazy(() => import("@/components/FeedHeader"));
+const FeedBody = lazy(() => import("@/components/FeedBody"));
+const FeedFooter = lazy(() => import("@/components/FeedFooter"));
 import styles from "@/assets/styles/Feed.module.scss";
 import { FeedProps } from "@/type";
 
-export default function Feed({ data }: { data: FeedProps }) {
+export default memo(function Feed({ data }: { data: FeedProps }) {
     return (
         <div className={styles["feed"]}>
             <FeedHeader data={data} />
@@ -12,4 +13,4 @@ export default function Feed({ data }: { data: FeedProps }) {
             <FeedFooter data={data} comments={true} />
         </div>
     );
-}
+});

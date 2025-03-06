@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Link } from "react-router-dom";
 import LoginForm from "@/components/LoginForm";
 import BigLogo from "@/components/BigLogo";
 import styles from "@/assets/styles/Form.module.scss";
 
-export default function Login() {
+export default memo(function Login() {
     const [text, setText] = useState("");
 
     return (
@@ -52,4 +52,4 @@ export default function Login() {
             </div>
         </div>
     );
-}
+});

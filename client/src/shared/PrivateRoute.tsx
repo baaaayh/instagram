@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, memo } from "react";
 import axios from "axios";
 import {
     useLocation,
@@ -54,7 +54,7 @@ async function getNewAccessToken(navigate: NavigateFunction) {
     }
 }
 
-const PrivateRoute = () => {
+const PrivateRoute = memo(() => {
     const { isAccessToken, isRefreshToken, setTokenState, resetTokenState } =
         useAuthStore();
     const navigate = useNavigate();
@@ -91,6 +91,6 @@ const PrivateRoute = () => {
     }
 
     return <Outlet />;
-};
+});
 
 export default PrivateRoute;

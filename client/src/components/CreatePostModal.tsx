@@ -5,6 +5,7 @@ import {
     useEffect,
     useReducer,
     memo,
+    lazy,
 } from "react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
@@ -13,14 +14,18 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { v4 as uuidv4 } from "uuid";
 import { useAuthStore } from "@/store/authStore";
-import ModalContainer from "@/components/ModalContainer";
-import CropComponent from "@/components/CropComponent";
-import PostGuide from "@/assets/images/icons/icon_post_guide.svg?react";
-import Arrow from "@/assets/images/icons/icon_slider_arrow.svg?react";
-import Back from "@/assets/images/icons/icon_back.svg?react";
+const ModalContainer = lazy(() => import("@/components/ModalContainer"));
+const CropComponent = lazy(() => import("@/components/CropComponent"));
+const PostGuide = lazy(
+    () => import("@/assets/images/icons/icon_post_guide.svg?react")
+);
+const Arrow = lazy(
+    () => import("@/assets/images/icons/icon_slider_arrow.svg?react")
+);
+const Back = lazy(() => import("@/assets/images/icons/icon_back.svg?react"));
+const ProfileIcon = lazy(() => import("./ProfileIcon"));
 import clsx from "clsx";
 import styles from "@/assets/styles/CreatePostModal.module.scss";
-import ProfileIcon from "./ProfileIcon";
 import { useModalStore } from "@/store/modalStore";
 
 export interface CroppedAreaType {
@@ -88,9 +93,9 @@ export default memo(function CreatePostModal() {
     const { userNickName } = useAuthStore();
     const { isOpenPostModal, setClosePostModal } = useModalStore();
 
-    const setCropFunction = (image: string, func: () => void) => {
+    const setCropFunction = useCallback((image: string, func: () => void) => {
         cropRefs.current[image] = func;
-    };
+    }, []);
 
     const handleCropConfirm = () => {
         if (filesURL.length <= 0) return;

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Outlet } from "react-router-dom";
 import SideNav from "@/components/SideNav";
 import CommonHeader from "@/components/CommonHeader";
@@ -6,7 +7,7 @@ import CreatePostModal from "@/components/CreatePostModal";
 import AccountModal from "@/components/AccountModal";
 import FeedModal from "@/components/FeedModal";
 
-export default function Layout() {
+export default memo(function Layout() {
     const { width: windowWidth } = useWindowSizeStore();
 
     return (
@@ -23,4 +24,4 @@ export default function Layout() {
             <FeedModal />
         </div>
     );
-}
+});

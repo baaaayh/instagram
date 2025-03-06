@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { FeedProps } from "@/type";
 import styles from "@/assets/styles/FeedFooter.module.scss";
 import { useModalStore } from "@/store/modalStore";
-export default function FeedComments({ data }: { data: FeedProps }) {
+export default memo(function FeedComments({ data }: { data: FeedProps }) {
     const { setOpenFeedModal } = useModalStore();
     return (
         <div className={styles["feed-footer__comments"]}>
@@ -14,4 +15,4 @@ export default function FeedComments({ data }: { data: FeedProps }) {
             </button>
         </div>
     );
-}
+});

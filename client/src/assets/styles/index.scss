@@ -50,11 +50,12 @@ input {
 }
 
 .view {
-    min-height: 100vh;
     padding-left: 335px;
     &__inner {
         display: flex;
         justify-content: center;
+        min-height: 100vh;
+        height: 100%;
     }
 }
 

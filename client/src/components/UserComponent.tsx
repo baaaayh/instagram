@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { Link } from "react-router-dom";
 import ProfileIcon from "@/components/ProfileIcon";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import clsx from "clsx";
 import styles from "@/assets/styles/UserComponent.module.scss";
 import { UserDataProps } from "@/type";
 
-export default function UserComponent({
+export default memo(function UserComponent({
     data,
     isFollowButton,
     isDeleteButton,
@@ -143,4 +143,4 @@ export default function UserComponent({
             </div>
         </li>
     );
-}
+});

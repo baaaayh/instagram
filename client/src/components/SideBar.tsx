@@ -2,6 +2,7 @@ import { memo } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import UserComponent from "@/components/UserComponent";
+// import SpinnerComponent from "@/components/SpinnerComponent";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/assets/styles/SideBar.module.scss";
 import { UserDataProps } from "@/type";
@@ -24,8 +25,8 @@ export default memo(function SideBar() {
 
     const {
         data: recommendUsers,
-        isLoading,
-        isError,
+        // isLoading,
+        // isError,
     } = useQuery({
         queryKey: ["recommendUsers", userNickName],
         queryFn: () => fetchRecommendUsers(userNickName),
@@ -33,8 +34,8 @@ export default memo(function SideBar() {
         staleTime: 600000,
     });
 
-    if (isLoading) return <div>Loading...</div>;
-    if (isError) return <div>Error loading users list</div>;
+    // if (isLoading) return <SpinnerComponent />;
+    // if (isError) return <div>Error loading users list</div>;
 
     return (
         <div className={styles["side-bar"]}>

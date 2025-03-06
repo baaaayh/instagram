@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import BigLogo from "@/components/BigLogo";
 import SignUpForm from "@/components/SignUpForm";
 import styles from "@/assets/styles/Form.module.scss";
 
-export default function SignUp() {
+export default memo(function SignUp() {
     return (
         <div className="form-page">
             <div className="form-page__inner">
@@ -37,4 +38,4 @@ export default function SignUp() {
             </div>
         </div>
     );
-}
+});
