@@ -16,6 +16,7 @@ import Hamburger from "@/assets/images/icons/icon_hamburger.svg?react";
 import { useAuthStore } from "@/store/authStore";
 import { useModalStore } from "@/store/modalStore";
 import { useNavStore } from "@/store/navStore";
+import { useWindowSizeStore } from "@/store/windowSizeStore";
 import clsx from "clsx";
 
 export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
@@ -27,6 +28,7 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
         setToggleMoreMenu,
     } = useNavStore();
     const { userNickName, resetTokenState } = useAuthStore();
+    const { width: windowWidth } = useWindowSizeStore();
 
     return (
         <div
@@ -42,12 +44,14 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                         activeIcon={<HomeActive />}
                         title="홈"
                     />
-                    <SideNavMenuItem
-                        icon={<Search />}
-                        title="검색"
-                        setToggleNavSearch={setToggleNavSearch}
-                        activeIcon={<SearchOn />}
-                    />
+                    {windowWidth > 765 && (
+                        <SideNavMenuItem
+                            icon={<Search />}
+                            title="검색"
+                            setToggleNavSearch={setToggleNavSearch}
+                            activeIcon={<SearchOn />}
+                        />
+                    )}
                     <SideNavMenuItem
                         link={"/explore"}
                         icon={<Explorer />}
@@ -73,33 +77,35 @@ export default memo(function SideNavMenu({ navState }: { navState: boolean }) {
                     />
                 </ul>
             </div>
-            <div className={styles["menu__more"]}>
-                {isOpenMoreMenu && (
-                    <div className={styles["menu__float"]}>
-                        <ul>
-                            <li>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        resetTokenState();
-                                        setCloseMoreMenu();
-                                    }}
-                                >
-                                    <span>로그아웃</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                )}
-                <button
-                    type="button"
-                    onClick={setToggleMoreMenu}
-                    className={styles["menu__toggle"]}
-                >
-                    <Hamburger />
-                    <strong>더 보기</strong>
-                </button>
-            </div>
+            {windowWidth > 765 && (
+                <div className={styles["menu__more"]}>
+                    {isOpenMoreMenu && (
+                        <div className={styles["menu__float"]}>
+                            <ul>
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            resetTokenState();
+                                            setCloseMoreMenu();
+                                        }}
+                                    >
+                                        <span>로그아웃</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={setToggleMoreMenu}
+                        className={styles["menu__toggle"]}
+                    >
+                        <Hamburger />
+                        <strong>더 보기</strong>
+                    </button>
+                </div>
+            )}
         </div>
     );
 });

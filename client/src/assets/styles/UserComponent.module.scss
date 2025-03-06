@@ -4,7 +4,7 @@
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        padding: 8px 16px;
+        padding: 8px 0;
     }
     &__profile {
         display: flex;
@@ -38,6 +38,16 @@
             span {
                 color: rgba(0, 0, 0);
             }
+        }
+    }
+    &__delete {
+        display: inline-flex;
+        padding: 5px;
+        cursor: pointer;
+        span {
+            display: inline-block;
+            font-size: 0;
+            color: rgba(115, 115, 115);
         }
     }
 }

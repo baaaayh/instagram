@@ -11,3 +11,20 @@
         color: inherit;
     }
 }
+
+@media screen and (max-width: 1625px) {
+    .small-logo {
+        height: 70px;
+        padding: 12px;
+        svg {
+            color: inherit;
+        }
+    }
+}
+
+@media screen and (max-width: 765px) {
+    .small-logo {
+        height: auto;
+        margin-bottom: 0;
+    }
+}

@@ -4,6 +4,7 @@ import { followUser, unFollowUser } from "@/api/followActions";
 import More from "@/assets/images/icons/icon_more.svg?react";
 import { useAuthStore } from "@/store/authStore";
 import { useModalStore } from "@/store/modalStore";
+import { useWindowSizeStore } from "@/store/windowSizeStore";
 import styles from "@/assets/styles/UserHeader.module.scss";
 import { UserPageProps } from "@/type";
 
@@ -30,6 +31,7 @@ export default memo(function UserHeader({
     const queryClient = useQueryClient();
     const { setOpenAccountModal } = useModalStore();
     const { userNickName: myNickName } = useAuthStore();
+    const { width: windowWidth } = useWindowSizeStore();
 
     const followMutation = useMutation({
         mutationFn: () => {
@@ -150,26 +152,29 @@ export default memo(function UserHeader({
                                 </ul>
                             </div>
                         </div>
-                        <div className={styles["user-header__state"]}>
-                            <ul>
-                                <li>
-                                    <span>게시물</span>
-                                    <strong>
-                                        {Array.isArray(feeds)
-                                            ? feeds.length
-                                            : 0}
-                                    </strong>
-                                </li>
-                                <li>
-                                    <span>팔로워</span>
-                                    <strong>{followers}</strong>
-                                </li>
-                                <li>
-                                    <span>팔로우</span>
-                                    <strong>{followings}</strong>
-                                </li>
-                            </ul>
-                        </div>
+                        {windowWidth > 756 && (
+                            <div className={styles["user-header__state"]}>
+                                <ul>
+                                    <li>
+                                        <span>게시물</span>
+                                        <strong>
+                                            {Array.isArray(feeds)
+                                                ? feeds.length
+                                                : 0}
+                                        </strong>
+                                    </li>
+                                    <li>
+                                        <span>팔로워</span>
+                                        <strong>{followers}</strong>
+                                    </li>
+                                    <li>
+                                        <span>팔로우</span>
+                                        <strong>{followings}</strong>
+                                    </li>
+                                </ul>
+                            </div>
+                        )}
+
                         <div
                             className={styles["user-header__intro"]}
                             dangerouslySetInnerHTML={

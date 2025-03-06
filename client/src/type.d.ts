@@ -66,3 +66,7 @@ export interface ThumbListItemProps {
     images: string[];
     is_following: boolean;
 }
+
+export interface TabsProps {
+    currentContents: string;
+}

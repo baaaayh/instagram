@@ -1,7 +1,7 @@
 import { memo } from "react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import SideBarUser from "@/components/SideBarUser";
+import UserComponent from "@/components/UserComponent";
 import { useAuthStore } from "@/store/authStore";
 import styles from "@/assets/styles/SideBar.module.scss";
 import { UserDataProps } from "@/type";
@@ -39,7 +39,7 @@ export default memo(function SideBar() {
     return (
         <div className={styles["side-bar"]}>
             <div className={styles["side-bar__profile"]}>
-                <SideBarUser
+                <UserComponent
                     data={{
                         is_following: false,
                         id: userId,
@@ -58,7 +58,7 @@ export default memo(function SideBar() {
                 <ul>
                     {recommendUsers && recommendUsers.length > 0 ? (
                         recommendUsers.map((user: UserDataProps) => (
-                            <SideBarUser
+                            <UserComponent
                                 key={user.nickname}
                                 data={user}
                                 isFollowButton={true}

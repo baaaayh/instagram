@@ -3,12 +3,14 @@ import SmallLogo from "@/components/SmallLogo";
 import SideNavMenu from "@/components/SideNavMenu";
 import SideNavSearch from "@/components/SideNavSearch";
 import { useNavStore } from "@/store/navStore";
+import { useWindowSizeStore } from "@/store/windowSizeStore";
 import clsx from "clsx";
 import styles from "@/assets/styles/SideNav.module.scss";
 
 export default memo(function SideNav() {
     const { isWideNav, isOpenNavSearch, setCloseNavSearch, setCloseMoreMenu } =
         useNavStore();
+    const { width: windowWidth } = useWindowSizeStore();
 
     useEffect(() => {
         function checkParentElement(e: MouseEvent) {
@@ -38,7 +40,8 @@ export default memo(function SideNav() {
         >
             <nav className={`side-nav ${styles["side-nav"]}`}>
                 <div className={styles["side-nav__inner"]}>
-                    <SmallLogo navState={isWideNav} />
+                    {windowWidth > 765 && <SmallLogo navState={isWideNav} />}
+
                     <SideNavMenu navState={isWideNav} />
                 </div>
             </nav>

@@ -1,54 +1,26 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import SideNavSearchItem from "@/components/SideNavSearchItem";
-import { useHistoryStore } from "@/store/historyStore";
 import clsx from "clsx";
+import { useSearchStore } from "@/store/searchStore";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSearchData } from "@/api/fetchSearchData";
+import { useHistoryStore } from "@/store/historyStore";
+import SideNavSearchItem from "@/components/SideNavSearchItem";
+import SearchComponent from "@/components/SearchComponent";
 import styles from "@/assets/styles/SideNavSearch.module.scss";
 import { UserDataProps } from "@/type";
 
-async function fetchSearchData(inputValue: string) {
-    if (!inputValue) return [];
-
-    try {
-        const response = await axios.post("/api/search", {
-            params: { searchValue: inputValue },
-        });
-        return response.data.searchData;
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        return [];
-    }
-}
-
 export default function SideNavSearch({ navState }: { navState: boolean }) {
+    const { inputValue } = useSearchStore();
     const { history, resetHistory } = useHistoryStore();
-    const [inputValue, setInputValue] = useState("");
-    const inputRef = useRef<HTMLInputElement | null>(null);
-
-    const handleSearchInput = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setInputValue(e.target.value);
-        },
-        []
-    );
 
     const {
         data: searchData,
         isLoading,
         isError,
-        refetch,
     } = useQuery({
         queryKey: ["searchData", inputValue],
         queryFn: () => fetchSearchData(inputValue),
-        enabled: false,
+        enabled: !!inputValue.trim(),
     });
-
-    useEffect(() => {
-        if (inputValue.trim() !== "") {
-            refetch();
-        }
-    }, [inputValue, refetch]);
 
     return (
         <div
@@ -57,21 +29,7 @@ export default function SideNavSearch({ navState }: { navState: boolean }) {
             })}
         >
             <div className={styles["search__inner"]}>
-                <div className={styles["search__header"]}>
-                    <h2>검색</h2>
-                    <div className={styles["search__input"]}>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            placeholder="검색"
-                            value={inputValue}
-                            onChange={handleSearchInput}
-                        />
-                        <button type="button" onClick={() => setInputValue("")}>
-                            <span>삭제</span>
-                        </button>
-                    </div>
-                </div>
+                <SearchComponent />
                 <div className={styles["history"]}>
                     <div className={styles["history__body"]}>
                         {isLoading && <p>검색 중...</p>}

@@ -20,5 +20,21 @@
             font-size: 12px;
             line-height: 52px;
         }
+        &--active {
+            color: rgba(0, 0, 0);
+            span {
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 765px) {
+    .user-tab {
+        ul {
+            width: 100%;
+            justify-content: space-around;
+            column-gap: unset;
+        }
     }
 }

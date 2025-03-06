@@ -6,6 +6,7 @@ import UserHeader from "@/components/UserHeader";
 import UserTab from "@/components/UserTab";
 import ThumbList from "@/components/ThumbList";
 import { useAuthStore } from "@/store/authStore";
+import { TabsProps } from "@/type";
 import styles from "@/assets/styles/User.module.scss";
 
 async function fetchUserData(
@@ -23,11 +24,7 @@ const initialState = {
     currentContents: "FEEDS",
 };
 
-interface initialState {
-    currentContents: string;
-}
-
-function reducer(state: initialState, action: { type: string }) {
+function reducer(state: TabsProps, action: { type: string }) {
     switch (action.type) {
         case "DATA_FEED":
             return { ...state, currentContents: "FEEDS" };
@@ -58,7 +55,7 @@ export default memo(function User() {
         <div className={styles["user"]}>
             <div className={styles["user__inner"]}>
                 <UserHeader data={data} userNickName={userNickName} />
-                <UserTab dispatch={dispatch} />
+                <UserTab dispatch={dispatch} state={state} />
                 <div className={styles["user__contents"]}>
                     {state.currentContents === "FEEDS" && (
                         <ThumbList data={data} />

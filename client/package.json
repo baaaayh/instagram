@@ -12,10 +12,12 @@
     },
     "dependencies": {
         "@tanstack/react-query": "^5.66.0",
+        "@types/lodash": "^4.17.16",
         "@types/node": "^22.13.5",
         "@types/react-slick": "^0.23.13",
         "axios": "^1.7.9",
         "clsx": "^2.1.1",
+        "lodash": "^4.17.21",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-dropzone": "^14.3.5",
