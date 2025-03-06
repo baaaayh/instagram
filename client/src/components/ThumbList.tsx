@@ -1,5 +1,5 @@
 import { memo, lazy, Suspense } from "react";
-const ThumbListItem = lazy(() => import("@/components/ThumbListItem"));
+import ThumbListItem from "@/components/ThumbListItem";
 const CameraIcon = lazy(
     () => import("@/assets/images/icons/icon_camera.svg?react")
 );
@@ -34,7 +34,6 @@ export default memo(function ThumbList({ data }: ThumbListProps) {
                 <ul>
                     {Array.isArray(feeds) &&
                         feeds.map((feed) => {
-                            // console.log(feed);
                             return (
                                 <Suspense
                                     key={feed.feed_id}

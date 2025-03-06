@@ -4,7 +4,7 @@
     align-items: stretch;
     &__left {
         display: flex;
-        max-width: calc((100vw - 250px) / 1.5);
+        max-width: calc((100vw - 128px - 500px) / 1.5);
         min-width: 320px;
         width: 100%;
         height: max-content;

@@ -164,7 +164,7 @@ app.get("/api/feed/get", async function (req, res) {
                         JSON_BUILD_OBJECT(
                             'file_path', fi.file_path,
                             'file_name', fi.file_name
-                        )
+                        ) ORDER BY fi.created_at ASC  -- 최신 업로드된 이미지가 먼저 오도록 정렬
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
                 ) AS images,
@@ -231,9 +231,11 @@ app.get("/api/feed/:id", async function (req, res) {
                             'file_path', fi.file_path,
                             'file_name', fi.file_name
                         )
+                        ORDER BY fi.created_at ASC -- 최신 이미지가 먼저 오도록 정렬
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
-                ) AS images,
+                ) AS images
+                ,
                 -- 댓글 정보
                 (
                     SELECT COALESCE(JSON_AGG(
@@ -244,10 +246,10 @@ app.get("/api/feed/:id", async function (req, res) {
                             'comment', c.content,
                             'created_at', c.created_at,
                             'user_name', cu.username,
-                            'user_id', cu.id,  -- 사용자 ID 추가
-                            'user_nickname', cu.nickname,  -- 사용자 닉네임 추가
-                            'profile_image', cu.profile_image,  -- 사용자 프로필 이미지 추가
-                            'intro', cu.intro  -- 사용자 소개 추가
+                            'user_id', cu.id,
+                            'user_nickname', cu.nickname,
+                            'profile_image', cu.profile_image,
+                            'intro', cu.intro
                         )
                         ORDER BY c.created_at DESC  -- 최신 댓글이 위로 오도록 정렬
                     ), '[]')
@@ -256,12 +258,12 @@ app.get("/api/feed/:id", async function (req, res) {
                     WHERE c.feed_id = f.id
                 ) AS comments,
                 -- 좋아요 여부 체크
-                COUNT(l.user_nickname) > 0 AS is_liked,  -- COUNT를 사용하여 좋아요 여부를 체크
+                COUNT(l.user_nickname) > 0 AS is_liked,
                 COUNT(DISTINCT lt.user_nickname) AS like_count
             FROM feeds f
             JOIN users u ON u.nickname = f.user_nickname
             LEFT JOIN feedImages fi ON fi.feed_id = f.id
-            LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $2  -- 특정 사용자의 좋아요 체크
+            LEFT JOIN likes l ON l.feed_id = f.id AND l.user_nickname = $2
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE f.id = $1
             GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at;`,
@@ -438,6 +440,7 @@ app.post("/api/user", async function (req, res) {
                             'file_path', fi.file_path,
                             'file_name', fi.file_name
                         )
+                        ORDER BY fi.created_at ASC  -- 이미지 업로드 순서대로 정렬 (최초 입력이 처음으로)
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
                 ) AS images,
@@ -568,8 +571,6 @@ app.post("/api/search", async function (req, res) {
         const result = await pool.query(query, values);
         const data = result.rows;
 
-        console.log(data);
-
         res.json({
             success: true,
             searchData: data,
@@ -583,7 +584,6 @@ app.post("/api/search", async function (req, res) {
 app.get("/api/explore", async function (req, res) {
     const { userNickName } = req.query.userNickName;
     try {
-        // 피드와 사용자 정보를 가져오는 쿼리
         const feedQuery = `
             SELECT 
                 f.id AS feed_id,
@@ -600,7 +600,7 @@ app.get("/api/explore", async function (req, res) {
                         JSON_BUILD_OBJECT(
                             'file_path', fi.file_path,
                             'file_name', fi.file_name
-                        )
+                        ) ORDER BY fi.created_at ASC  -- 최신 업로드된 이미지가 먼저 오도록 정렬
                     ) FILTER (WHERE fi.file_path IS NOT NULL),
                     '[]'
                 ) AS images,

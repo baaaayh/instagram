@@ -25,7 +25,6 @@ async function refreshToken(req, res) {
 
         const user = result.rows[0];
 
-        console.log();
         if (user.length === 0) {
             return res.status(403).json({
                 success: false,

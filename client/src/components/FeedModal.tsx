@@ -46,7 +46,8 @@ export default function FeedModal() {
     });
 
     const settings = {
-        slidePerView: 1,
+        slidesToShow: 1,
+        slidesToScroll: 1,
         dots: true,
     };
 
@@ -68,7 +69,12 @@ export default function FeedModal() {
                                     (image: {
                                         file_path: string;
                                         file_name: string;
-                                    }) => <FeedSliderItem image={image} />
+                                    }) => (
+                                        <FeedSliderItem
+                                            key={image.file_name}
+                                            image={image}
+                                        />
+                                    )
                                 )}
                         </Slider>
                     )}
