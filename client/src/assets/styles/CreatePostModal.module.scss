@@ -178,6 +178,11 @@
         > div {
             height: 100%;
         }
+        img {
+            max-width: none;
+            object-fit: cover;
+            object-position: center;
+        }
     }
     :global(.slick-arrow) {
         &::before {
