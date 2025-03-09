@@ -82,6 +82,8 @@
         }
     }
     &__more {
+        display: flex;
+        align-items: center;
         font-size: 0;
         button {
             display: inline-block;
@@ -106,10 +108,10 @@
 @media screen and (max-width: 765px) {
     .feed-modal {
         flex-direction: column;
+        width: 100%;
         &__left {
-            max-width: 500px;
+            max-width: none;
             min-width: auto;
-            width: 100%;
         }
         &__right {
             max-width: none;
@@ -118,6 +120,32 @@
         &__main {
             position: relative;
             max-height: 150px;
+        }
+        &__header {
+            padding: 10px;
+        }
+        &__main {
+            padding: 10px;
+            max-height: 120px;
+        }
+        &__figure {
+            a {
+                font-size: 13px;
+            }
+        }
+        &__user {
+            a {
+                font-size: 13px;
+            }
+        }
+        :global(.slick-dots) {
+            bottom: 0;
+        }
+        :global(.slick-next) {
+            right: 10px;
+        }
+        :global(.slick-prev) {
+            left: 10px;
         }
     }
 }
