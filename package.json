@@ -1,10 +1,15 @@
 {
-    "scripts": {
-        "start:client": "cd client && pnpm start",
-        "start:server": "cd server && pnpm start",
-        "start": "concurrently \"pnpm start:server\" \"pnpm start:client\""
-    },
-    "devDependencies": {
-        "concurrently": "^9.1.2"
-    }
+  "scripts": {
+    "dev": "concurrently \"pnpm start:server\" \"pnpm start:client\"",
+    "build": "cd client && pnpm build",
+    "start:client": "cd client && pnpm start",
+    "start:server": "cd server && pnpm start",
+    "start": "concurrently \"pnpm start:server\" \"pnpm start:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0"
+  }
 }

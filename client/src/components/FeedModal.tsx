@@ -18,129 +18,124 @@ const FeedFooter = lazy(() => import("@/components/FeedFooter"));
 const FeedSliderItem = lazy(() => import("@/components/FeedSliderItem"));
 
 async function fetchFeedData(feedId: string) {
-    const response = await axios.get(`/api/feed/${feedId}`, {
-        params: { userNickName: useAuthStore.getState().userNickName },
-    });
-    return response.data.feedInfo;
+  const response = await axios.get(`/api/feed/${feedId}`, {
+    params: { userNickName: useAuthStore.getState().userNickName },
+  });
+  return response.data.feedInfo;
 }
 
 export default function FeedModal() {
-    const {
-        currentFeedId: feedId,
-        isOpenFeedModal,
-        setCloseFeedModal,
-    } = useModalStore();
+  const {
+    currentFeedId: feedId,
+    isOpenFeedModal,
+    setCloseFeedModal,
+  } = useModalStore();
 
-    const {
-        data: feedData,
-        isLoading,
-        isError,
-    } = useQuery({
-        queryKey: ["feedData", feedId],
-        queryFn: () => {
-            if (!feedId) return;
-            return fetchFeedData(feedId);
-        },
-        enabled: !!feedId,
-        staleTime: 600000,
-    });
+  const {
+    data: feedData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["feedData", feedId],
+    queryFn: () => {
+      if (!feedId) return;
+      return fetchFeedData(feedId);
+    },
+    enabled: !!feedId,
+    staleTime: 600000,
+  });
 
-    const settings = {
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        dots: true,
-    };
+  const settings = {
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    dots: true,
+  };
 
-    if (isLoading) return <div>Loading...</div>;
-    if (isError) return <div>Error loading feed list</div>;
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading feed list</div>;
 
-    return (
-        <ModalContainer isOpen={isOpenFeedModal} closeModal={setCloseFeedModal}>
-            <div className={styles["feed-modal"]}>
-                <div className={styles["feed-modal__left"]}>
-                    {feedData && feedData.images.length <= 1 ? (
-                        <div>
-                            <img src={feedData.images[0].file_path} alt="" />
-                        </div>
-                    ) : (
-                        <Slider {...settings}>
-                            {feedData &&
-                                feedData.images.map(
-                                    (image: {
-                                        file_path: string;
-                                        file_name: string;
-                                    }) => (
-                                        <FeedSliderItem
-                                            key={image.file_name}
-                                            image={image}
-                                        />
-                                    )
-                                )}
-                        </Slider>
-                    )}
-                </div>
-                <div className={styles["feed-modal__right"]}>
-                    <div className={styles["feed-modal__header"]}>
-                        <div className={styles["feed-modal__user"]}>
-                            <div className={styles["feed-modal__figure"]}>
-                                <Link to={`/${feedData?.user_nickname}`}>
-                                    <ProfileIcon width={32} height={32} />
-                                </Link>
-                            </div>
-                            <div className={styles["feed-modal__user__id"]}>
-                                <Link to={`/${feedData?.user_nickname}`}>
-                                    {feedData?.user_nickname}
-                                </Link>
-                            </div>
-                        </div>
-                        <div className={styles["feed-modal__more"]}>
-                            <button type="button">
-                                <span>
-                                    <More />더 보기
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                    <div className={styles["feed-modal__body"]}>
-                        <div className={styles["feed-modal__inner"]}>
-                            <div className={styles["feed-modal__main"]}>
-                                <div className={styles["feed-modal__content"]}>
-                                    {feedData?.content && (
-                                        <FeedComment
-                                            user={feedData?.user_nickname}
-                                            data={feedData.content}
-                                        />
-                                    )}
-                                </div>
-                                <div className={styles["feed-modal__comments"]}>
-                                    {feedData?.comments
-                                        .reverse()
-                                        .map((comment: CommentProps) => (
-                                            <Suspense
-                                                key={comment.comment_id}
-                                                fallback={
-                                                    <div>
-                                                        Loading comment...
-                                                    </div>
-                                                }
-                                            >
-                                                <FeedComment
-                                                    user={comment.user_nickname}
-                                                    data={comment}
-                                                />
-                                            </Suspense>
-                                        ))}
-                                </div>
-                            </div>
-                        </div>
-                        {feedData && (
-                            <Suspense fallback={<div>Loading footer...</div>}>
-                                <FeedFooter data={feedData} comments={false} />
-                            </Suspense>
-                        )}
-                    </div>
-                </div>
+  return (
+    <ModalContainer isOpen={isOpenFeedModal} closeModal={setCloseFeedModal}>
+      <div className={styles["feed-modal"]}>
+        <div className={styles["feed-modal__left"]}>
+          {feedData?.images && feedData.images.length > 0 ? (
+            feedData.images.length === 1 ? (
+              <div>
+                <img src={feedData.images[0].file_path} alt="" />
+              </div>
+            ) : (
+              <Slider {...settings}>
+                {feedData.images.map(
+                  (image: { file_path: string; file_name: string }) => (
+                    <FeedSliderItem key={image.file_name} image={image} />
+                  ),
+                )}
+              </Slider>
+            )
+          ) : (
+            <div className={styles["no-image"]}>이미지가 없습니다.</div>
+          )}
+        </div>
+        <div className={styles["feed-modal__right"]}>
+          <div className={styles["feed-modal__header"]}>
+            <div className={styles["feed-modal__user"]}>
+              <div className={styles["feed-modal__figure"]}>
+                <Link to={`/${feedData?.user_nickname}`}>
+                  <ProfileIcon width={32} height={32} />
+                </Link>
+              </div>
+              <div className={styles["feed-modal__user__id"]}>
+                <Link to={`/${feedData?.user_nickname}`}>
+                  {feedData?.user_nickname}
+                </Link>
+              </div>
             </div>
-        </ModalContainer>
-    );
+            <div className={styles["feed-modal__more"]}>
+              <button type="button">
+                <span>
+                  <More />더 보기
+                </span>
+              </button>
+            </div>
+          </div>
+          <div className={styles["feed-modal__body"]}>
+            <div className={styles["feed-modal__inner"]}>
+              <div className={styles["feed-modal__main"]}>
+                <div className={styles["feed-modal__content"]}>
+                  {feedData?.content && (
+                    <FeedComment
+                      user={feedData?.user_nickname}
+                      data={feedData.content}
+                    />
+                  )}
+                </div>
+                <div className={styles["feed-modal__comments"]}>
+                  {/* 복사본을 만들어 정렬(slice().reverse()) */}
+                  {(feedData?.comments || [])
+                    .slice()
+                    .reverse()
+                    .map((comment: CommentProps) => (
+                      <Suspense
+                        key={comment.comment_id}
+                        fallback={<div>Loading comment...</div>}
+                      >
+                        <FeedComment
+                          user={comment.user_nickname}
+                          data={comment}
+                        />
+                      </Suspense>
+                    ))}
+                </div>
+              </div>
+            </div>
+            {feedData && (
+              <Suspense fallback={<div>Loading footer...</div>}>
+                <FeedFooter data={feedData} comments={false} />
+              </Suspense>
+            )}
+          </div>
+        </div>
+      </div>
+    </ModalContainer>
+  );
 }

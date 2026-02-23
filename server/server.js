@@ -1,3 +1,5 @@
+const path = require("node:path");
+const dotenv = require("dotenv");
 const express = require("express");
 const pool = require("./db.js");
 const app = express();
@@ -6,40 +8,52 @@ const login = require("./auth/auth.js");
 const cors = require("cors");
 const multer = require("multer");
 const refreshToken = require("./auth/refresh.js");
-const path = require("node:path");
 const fs = require("fs");
+const { createClient } = require("@supabase/supabase-js");
+
+// 1. Supabase 접속 정보 (대시보드 Settings -> API에서 확인 가능)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY,
+);
 
 app.use(
-    cors({
-        origin: "http://localhost:5173",
-        credentials: true,
-    })
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = path.join(
-            "../client/public/feeds/images",
-            req.body.userNickName,
-            req.body.feedId
-        );
-        fs.mkdir(dir, { recursive: true }, (err) => {
-            if (err) {
-                return cb(err);
-            }
-            cb(null, dir);
-        });
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    },
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     const dir = path.join(
+//       "../client/public/feeds/images",
+//       req.body.userNickName,
+//       req.body.feedId,
+//     );
+//     fs.mkdir(dir, { recursive: true }, (err) => {
+//       if (err) {
+//         return cb(err);
+//       }
+//       cb(null, dir);
+//     });
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.originalname);
+//   },
+// });
+// const upload = multer({ storage: storage });
+
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 제한 (선택)
 });
-const upload = multer({ storage: storage });
 
 app.get("/", function (req, res) {
-    res.send("Welcome!");
+  res.send("Welcome!");
 });
 
 app.post("/api/accounts/login", login);
@@ -47,110 +61,159 @@ app.post("/api/accounts/login", login);
 app.post("/api/token/refresh", refreshToken);
 
 app.post("/api/accounts/signup", async function (req, res) {
-    const { id, password, username, nickname } = req.body;
-    try {
-        const hashedPassword = bcrypt.hashSync(password, 10);
+  const { id, password, username, nickname } = req.body;
+  try {
+    const hashedPassword = bcrypt.hashSync(password, 10);
 
-        const newUser = await pool.query(
-            "INSERT INTO users (id, hashed_password, username, nickname) VALUES ($1, $2, $3, $4) RETURNING id, username, nickname",
-            [id, hashedPassword, username, nickname]
-        );
+    const newUser = await pool.query(
+      "INSERT INTO users (id, hashed_password, username, nickname) VALUES ($1, $2, $3, $4) RETURNING id, username, nickname",
+      [id, hashedPassword, username, nickname],
+    );
 
-        res.status(201).json({
-            success: true,
-            id: newUser.rows[0].id,
-            username: newUser.rows[0].username,
-            nickname: newUser.rows[0].nickname,
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: "회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.",
-        });
-        console.log(error);
-    }
+    res.status(201).json({
+      success: true,
+      id: newUser.rows[0].id,
+      username: newUser.rows[0].username,
+      nickname: newUser.rows[0].nickname,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.",
+    });
+    console.log(error);
+  }
 });
 
 app.post("/api/accounts/validate", async function (req, res) {
-    const { name, value } = req.body.params;
-    if (name === "id" || name === "nickname") {
-        let message;
-        let item;
+  const { name, value } = req.body.params;
+  if (name === "id" || name === "nickname") {
+    let message;
+    let item;
 
-        if (name === "id") {
-            message = "다른 계정에서 동일한 이메일 주소를 사용 중입니다.";
-            item = name.toLowerCase();
-        }
-        if (name === "nickname") {
-            message = "이 사용자 이름은 이미 다른 사람이 사용하고 있습니다.";
-            item = name.toLowerCase();
-        }
-
-        const query = `SELECT * FROM users WHERE ${item} = $1`;
-
-        pool.query(query, [value]).then((result) => {
-            if (result.rows.length > 0) {
-                res.status(201).json({
-                    success: false,
-                    name: name,
-                    message,
-                });
-            } else {
-                res.status(201).json({
-                    success: true,
-                    name: name,
-                    message: "중복 없음.",
-                });
-            }
-        });
+    if (name === "id") {
+      message = "다른 계정에서 동일한 이메일 주소를 사용 중입니다.";
+      item = name.toLowerCase();
     }
+    if (name === "nickname") {
+      message = "이 사용자 이름은 이미 다른 사람이 사용하고 있습니다.";
+      item = name.toLowerCase();
+    }
+
+    const query = `SELECT * FROM users WHERE ${item} = $1`;
+
+    pool.query(query, [value]).then((result) => {
+      if (result.rows.length > 0) {
+        res.status(201).json({
+          success: false,
+          name: name,
+          message,
+        });
+      } else {
+        res.status(201).json({
+          success: true,
+          name: name,
+          message: "중복 없음.",
+        });
+      }
+    });
+  }
 });
 
-app.post("/api/feed/post", upload.array("files"), async function (req, res) {
-    try {
-        const { userNickName, feedId, textAreaValue } = req.body;
+// app.post("/api/feed/post", upload.array("files"), async function (req, res) {
+//   try {
+//     const { userNickName, feedId, textAreaValue } = req.body;
 
-        await pool.query(
-            "INSERT INTO feeds (id, user_nickname, content) VALUES ($1, $2, $3)",
-            [feedId, userNickName, textAreaValue]
-        );
+//     await pool.query(
+//       "INSERT INTO feeds (id, user_nickname, content) VALUES ($1, $2, $3)",
+//       [feedId, userNickName, textAreaValue],
+//     );
 
-        const filePromises = req.files.map(async (file) => {
-            const fileName = file.originalname;
+//     const filePromises = req.files.map(async (file) => {
+//       const fileName = file.originalname;
 
-            let filePath = file.path
-                .replace(/\\/g, "/") // 윈도우 경로 구분자를 '/'로 변환
-                .replace(/^.*\/client\/public\//, ""); // '../client/public/' 부분 제거
+//       let filePath = file.path
+//         .replace(/\\/g, "/") // 윈도우 경로 구분자를 '/'로 변환
+//         .replace(/^.*\/client\/public\//, ""); // '../client/public/' 부분 제거
 
-            await pool.query(
-                "INSERT INTO feedImages (id, user_nickname, feed_id, file_name, file_path) VALUES ($1, $2, $3, $4, $5)",
-                [
-                    `${feedId}-${fileName}`,
-                    userNickName,
-                    feedId,
-                    fileName,
-                    filePath,
-                ]
-            );
+//       await pool.query(
+//         "INSERT INTO feedImages (id, user_nickname, feed_id, file_name, file_path) VALUES ($1, $2, $3, $4, $5)",
+//         [`${feedId}-${fileName}`, userNickName, feedId, fileName, filePath],
+//       );
+//     });
+
+//     await Promise.all(filePromises);
+
+//     res.json({ success: true, message: "게시물이 업로드되었습니다." });
+//   } catch (error) {
+//     console.error("Error saving feed:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "게시물 업로드 중 오류가 발생했습니다.",
+//     });
+//   }
+// });
+
+app.post("/api/feed/post", upload.array("files"), async (req, res) => {
+  try {
+    const { userNickName, feedId, textAreaValue } = req.body;
+
+    // A. 트랜잭션 시작 (선택사항이나 권장)
+    // feeds 테이블에 게시글 정보 저장
+    await pool.query(
+      "INSERT INTO feeds (id, user_nickname, content) VALUES ($1, $2, $3)",
+      [feedId, userNickName, textAreaValue],
+    );
+
+    // B. 파일들 업로드 처리
+    const uploadPromises = req.files.map(async (file, index) => {
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${index}_${file.originalname}`; // ★ index를 넣어 중복 방지
+      const filePath = `${userNickName}/${feedId}/${fileName}`;
+
+      // console.log(`${index}번째 파일 처리 중: ${fileName}`); // 로그로 확인
+
+      // 2) Supabase Storage 업로드
+      const { error: uploadError } = await supabase.storage
+        .from("feed_images")
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false, // 중복 시 덮어쓰지 않도록 설정
         });
 
-        await Promise.all(filePromises);
+      if (uploadError) {
+        console.error(`파일 업로드 에러 (${index}):`, uploadError);
+        throw uploadError;
+      }
 
-        res.json({ success: true, message: "게시물이 업로드되었습니다." });
-    } catch (error) {
-        console.error("Error saving feed:", error);
-        res.status(500).json({
-            success: false,
-            message: "게시물 업로드 중 오류가 발생했습니다.",
-        });
-    }
+      // 3) 전체 인터넷 주소 가져오기
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("feed_images").getPublicUrl(filePath);
+
+      // 4) DB 저장 (ID에도 index를 붙여 고유성 확보)
+      await pool.query(
+        "INSERT INTO feedImages (id, user_nickname, feed_id, file_name, file_path) VALUES ($1, $2, $3, $4, $5)",
+        [`${feedId}-${index}`, userNickName, feedId, fileName, publicUrl],
+      );
+
+      return { fileName, publicUrl };
+    });
+
+    await Promise.all(uploadPromises);
+
+    res.json({ success: true, message: "피드 업로드 성공!" });
+  } catch (err) {
+    console.error("전체 업로드 프로세스 에러:", err);
+    res.status(500).json({ success: false, message: "업로드 실패" });
+  }
 });
 
 app.get("/api/feed/get", async function (req, res) {
-    const { userNickName } = req.query;
+  const { userNickName } = req.query;
 
-    try {
-        const result = await pool.query(
-            `SELECT 
+  try {
+    const result = await pool.query(
+      `SELECT 
                 f.id AS feed_id,
                 f.user_nickname AS user_nickname,
                 u.username AS user_name,
@@ -199,24 +262,25 @@ app.get("/api/feed/get", async function (req, res) {
             WHERE fo.follower_nickname = $1
             GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at, l.user_nickname
             ORDER BY f.created_at DESC;`,
-            [userNickName]
-        );
+      [userNickName],
+    );
 
-        res.json({
-            success: true,
-            feedInfo: result.rows,
-        });
-    } catch (error) {
-        console.log(error);
-    }
+    res.json({
+      success: true,
+      feedInfo: result.rows,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.get("/api/feed/:id", async function (req, res) {
-    const { id } = req.params;
-    const { userNickName } = req.query;
-    try {
-        const result = await pool.query(
-            `SELECT 
+  // console.log("요청 들어옴! ID:", req.params.id);
+  const { id } = req.params;
+  const { userNickName } = req.query;
+  try {
+    const result = await pool.query(
+      `SELECT 
                 f.id AS feed_id,
                 f.user_nickname AS user_nickname,
                 u.username AS user_name,
@@ -267,167 +331,167 @@ app.get("/api/feed/:id", async function (req, res) {
             LEFT JOIN likes lt ON lt.feed_id = f.id
             WHERE f.id = $1
             GROUP BY f.id, f.user_nickname, u.username, u.nickname, u.profile_image, f.content, f.created_at;`,
-            [id, userNickName]
-        );
+      [id, userNickName],
+    );
 
-        if (result.rows.length === 0) {
-            return res
-                .status(404)
-                .json({ success: false, message: "피드를 찾을 수 없습니다." });
-        }
-
-        res.json({
-            success: true,
-            feedInfo: result.rows[0],
-        });
-    } catch (error) {
-        console.error("피드 조회 오류:", error);
-        res.status(500).json({ success: false, message: "서버 오류 발생" });
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "피드를 찾을 수 없습니다." });
     }
+
+    res.json({
+      success: true,
+      feedInfo: result.rows[0],
+    });
+  } catch (error) {
+    console.error("피드 조회 오류:", error);
+    res.status(500).json({ success: false, message: "서버 오류 발생" });
+  }
 });
 
 app.post("/api/comment/post", upload.none(), async function (req, res) {
-    const { feed_id, user_nickname, parent_comment_id, comment } = req.body;
+  const { feed_id, user_nickname, parent_comment_id, comment } = req.body;
 
-    try {
-        const parentCommentId = parent_comment_id ? parent_comment_id : null;
-        const id = `${feed_id}-${user_nickname}-${Date.now()}`;
-        await pool.query(
-            "INSERT INTO comments (id, feed_id, user_nickname, parent_comment_id, content) VALUES ($1, $2, $3, $4, $5)",
-            [id, feed_id, user_nickname, parentCommentId, comment]
-        );
+  try {
+    const parentCommentId = parent_comment_id ? parent_comment_id : null;
+    const id = `${feed_id}-${user_nickname}-${Date.now()}`;
+    await pool.query(
+      "INSERT INTO comments (id, feed_id, user_nickname, parent_comment_id, content) VALUES ($1, $2, $3, $4, $5)",
+      [id, feed_id, user_nickname, parentCommentId, comment],
+    );
 
-        res.json({ success: true, message: "댓글 업로드 성공" });
-    } catch (error) {
-        console.log(error);
-    }
+    res.json({ success: true, message: "댓글 업로드 성공" });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.post("/api/follow/post", async function (req, res) {
-    const { isFollow, userNickName, nickName } = req.body.params;
+  const { isFollow, userNickName, nickName } = req.body.params;
 
-    try {
-        const existingFollow = await pool.query(
-            "SELECT 1 FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
-            [userNickName, nickName]
-        );
+  try {
+    const existingFollow = await pool.query(
+      "SELECT 1 FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
+      [userNickName, nickName],
+    );
 
-        if (existingFollow.rowCount > 0) {
-            return res.json({
-                success: false,
-                message: "이미 팔로우 중입니다.",
-            });
-        }
-
-        await pool.query(
-            "INSERT INTO follows (follower_nickname, following_nickname) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            [userNickName, nickName]
-        );
-
-        res.json({ success: true, message: "팔로우 성공", isFollow });
-    } catch (error) {
-        console.error("팔로우 오류:", error);
-        res.status(500).json({
-            success: false,
-            message: "팔로우 중 오류가 발생했습니다.",
-        });
+    if (existingFollow.rowCount > 0) {
+      return res.json({
+        success: false,
+        message: "이미 팔로우 중입니다.",
+      });
     }
+
+    await pool.query(
+      "INSERT INTO follows (follower_nickname, following_nickname) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [userNickName, nickName],
+    );
+
+    res.json({ success: true, message: "팔로우 성공", isFollow });
+  } catch (error) {
+    console.error("팔로우 오류:", error);
+    res.status(500).json({
+      success: false,
+      message: "팔로우 중 오류가 발생했습니다.",
+    });
+  }
 });
 
 app.post("/api/follow/delete", async function (req, res) {
-    const { isFollow, userNickName, nickName } = req.body.params;
+  const { isFollow, userNickName, nickName } = req.body.params;
 
-    try {
-        await pool.query(
-            "DELETE FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
-            [userNickName, nickName]
-        );
-        res.json({ success: true, message: "팔로우 취소 성공", isFollow });
-    } catch (error) {
-        console.error("팔로우 오류:", error);
-    }
+  try {
+    await pool.query(
+      "DELETE FROM follows WHERE follower_nickname = $1 AND following_nickname = $2",
+      [userNickName, nickName],
+    );
+    res.json({ success: true, message: "팔로우 취소 성공", isFollow });
+  } catch (error) {
+    console.error("팔로우 오류:", error);
+  }
 });
 
 app.post("/api/feed/like", async function (req, res) {
-    const { feedId, userNickName } = req.body.params;
+  const { feedId, userNickName } = req.body.params;
 
-    try {
-        // 좋아요 추가
-        await pool.query(
-            "INSERT INTO likes (user_nickname, feed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            [userNickName, feedId]
-        );
+  try {
+    // 좋아요 추가
+    await pool.query(
+      "INSERT INTO likes (user_nickname, feed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [userNickName, feedId],
+    );
 
-        // 현재 좋아요 상태 확인
-        const isLikedResult = await pool.query(
-            "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
-            [userNickName, feedId]
-        );
+    // 현재 좋아요 상태 확인
+    const isLikedResult = await pool.query(
+      "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+      [userNickName, feedId],
+    );
 
-        const isLiked = isLikedResult.rows[0].is_liked;
+    const isLiked = isLikedResult.rows[0].is_liked;
 
-        // 좋아요 수 카운트
-        const likeCountResult = await pool.query(
-            "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
-            [feedId]
-        );
+    // 좋아요 수 카운트
+    const likeCountResult = await pool.query(
+      "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
+      [feedId],
+    );
 
-        const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
+    const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
 
-        res.json({
-            success: true,
-            is_liked: isLiked,
-            like_count: likeCount,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "서버 오류 발생" });
-    }
+    res.json({
+      success: true,
+      is_liked: isLiked,
+      like_count: likeCount,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "서버 오류 발생" });
+  }
 });
 
 app.post("/api/feed/unlike", async function (req, res) {
-    const { feedId, userNickName } = req.body.params;
+  const { feedId, userNickName } = req.body.params;
 
-    try {
-        // 좋아요 삭제
-        await pool.query(
-            "DELETE FROM likes WHERE user_nickname = $1 AND feed_id = $2",
-            [userNickName, feedId]
-        );
+  try {
+    // 좋아요 삭제
+    await pool.query(
+      "DELETE FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+      [userNickName, feedId],
+    );
 
-        // 현재 좋아요 상태 확인
-        const isLikedResult = await pool.query(
-            "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
-            [userNickName, feedId]
-        );
+    // 현재 좋아요 상태 확인
+    const isLikedResult = await pool.query(
+      "SELECT COUNT(*) > 0 AS is_liked FROM likes WHERE user_nickname = $1 AND feed_id = $2",
+      [userNickName, feedId],
+    );
 
-        const isLiked = isLikedResult.rows[0].is_liked;
+    const isLiked = isLikedResult.rows[0].is_liked;
 
-        // 좋아요 수 카운트
-        const likeCountResult = await pool.query(
-            "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
-            [feedId]
-        );
+    // 좋아요 수 카운트
+    const likeCountResult = await pool.query(
+      "SELECT COUNT(*) AS like_count FROM likes WHERE feed_id = $1",
+      [feedId],
+    );
 
-        const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
+    const likeCount = parseInt(likeCountResult.rows[0].like_count, 10);
 
-        res.json({
-            success: true,
-            is_liked: isLiked,
-            like_count: likeCount,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "서버 오류 발생" });
-    }
+    res.json({
+      success: true,
+      is_liked: isLiked,
+      like_count: likeCount,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "서버 오류 발생" });
+  }
 });
 
 app.post("/api/user", async function (req, res) {
-    const { nickName, userNickName } = req.body.params;
+  const { nickName, userNickName } = req.body.params;
 
-    try {
-        const result = await pool.query(
-            `SELECT 
+  try {
+    const result = await pool.query(
+      `SELECT 
                 u.nickname, 
                 u.profile_image, 
                 u.intro, 
@@ -479,51 +543,51 @@ app.post("/api/user", async function (req, res) {
             WHERE u.nickname = $1
             GROUP BY u.nickname, u.profile_image, u.intro, f.id, f.content, f.created_at
             ORDER BY f.created_at DESC;`,
-            [nickName, userNickName]
-        );
+      [nickName, userNickName],
+    );
 
-        if (result.rows.length === 0) {
-            return res
-                .status(404)
-                .json({ success: false, message: "User not found" });
-        }
-
-        const user = {
-            id: result.rows[0].user_id,
-            username: result.rows[0].username,
-            nickname: result.rows[0].nickname,
-            profile_image: result.rows[0].profile_image,
-            is_following: result.rows[0].is_following,
-            feeds: result.rows
-                .filter((row) => row.feed_id !== null)
-                .map((row) => ({
-                    feed_id: row.feed_id,
-                    content: row.content,
-                    created_at: row.created_at,
-                    images: row.images,
-                    comments: row.comments,
-                })),
-            followers: Number(result.rows[0].follower_count),
-            followings: Number(result.rows[0].following_count),
-            intro: result.rows[0].intro,
-        };
-
-        res.json({ success: true, user });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
+
+    const user = {
+      id: result.rows[0].user_id,
+      username: result.rows[0].username,
+      nickname: result.rows[0].nickname,
+      profile_image: result.rows[0].profile_image,
+      is_following: result.rows[0].is_following,
+      feeds: result.rows
+        .filter((row) => row.feed_id !== null)
+        .map((row) => ({
+          feed_id: row.feed_id,
+          content: row.content,
+          created_at: row.created_at,
+          images: row.images,
+          comments: row.comments,
+        })),
+      followers: Number(result.rows[0].follower_count),
+      followings: Number(result.rows[0].following_count),
+      intro: result.rows[0].intro,
+    };
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
 });
 
 app.get("/api/user/recommend", async function (req, res) {
-    const userNickName = req.query.userNickName;
+  const userNickName = req.query.userNickName;
 
-    try {
-        const result = await pool.query(
-            `SELECT 
+  try {
+    const result = await pool.query(
+      `SELECT 
                 u.id, 
                 u.username, 
                 u.nickname, 
@@ -540,51 +604,51 @@ app.get("/api/user/recommend", async function (req, res) {
             WHERE u.nickname <> $1  -- 본인 제외
             ORDER BY u.id  -- 순서 유지
             LIMIT 5`,
-            [userNickName]
-        );
+      [userNickName],
+    );
 
-        res.json({
-            success: true,
-            users: result.rows,
-        });
-    } catch (error) {
-        console.error("Error fetching recommended users:", error);
-        res.status(500).json({
-            success: false,
-            message: "서버 오류가 발생했습니다.",
-        });
-    }
+    res.json({
+      success: true,
+      users: result.rows,
+    });
+  } catch (error) {
+    console.error("Error fetching recommended users:", error);
+    res.status(500).json({
+      success: false,
+      message: "서버 오류가 발생했습니다.",
+    });
+  }
 });
 
 app.post("/api/search", async function (req, res) {
-    const { searchValue } = req.body.params;
+  const { searchValue } = req.body.params;
 
-    try {
-        const query = `
+  try {
+    const query = `
             SELECT username, nickname, profile_image, intro FROM users
             WHERE nickname ILIKE $1
             ORDER BY nickname ASC;
         `;
 
-        const values = [`%${searchValue}%`];
+    const values = [`%${searchValue}%`];
 
-        const result = await pool.query(query, values);
-        const data = result.rows;
+    const result = await pool.query(query, values);
+    const data = result.rows;
 
-        res.json({
-            success: true,
-            searchData: data,
-        });
-    } catch (error) {
-        console.error("Error searching users:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+    res.json({
+      success: true,
+      searchData: data,
+    });
+  } catch (error) {
+    console.error("Error searching users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.get("/api/explore", async function (req, res) {
-    const { userNickName } = req.query.userNickName;
-    try {
-        const feedQuery = `
+  const { userNickName } = req.query.userNickName;
+  try {
+    const feedQuery = `
             SELECT 
                 f.id AS feed_id,
                 f.content,
@@ -621,41 +685,41 @@ app.get("/api/explore", async function (req, res) {
             LIMIT 12;
         `;
 
-        const result = await pool.query(feedQuery, [userNickName]); // 사용자 닉네임을 쿼리에 전달합니다.
+    const result = await pool.query(feedQuery, [userNickName]); // 사용자 닉네임을 쿼리에 전달합니다.
 
-        if (result.rows.length === 0) {
-            return res
-                .status(404)
-                .json({ success: false, message: "No feeds found" });
-        }
-
-        const feeds = result.rows.map((feed) => ({
-            feed_id: feed.feed_id,
-            text: feed.content,
-            user: {
-                nickname: feed.nickname,
-                profile_image: feed.profile_image,
-                intro: feed.intro,
-                followers: feed.followers, // 팔로워 수
-                followings: feed.followings, // 팔로잉 수
-            },
-            images: feed.images, // 피드의 이미지 배열
-            is_following: feed.is_following, // 팔로우 여부
-        }));
-
-        res.json({
-            success: true,
-            feeds, // 랜덤으로 가져온 피드와 그 사용자 정보 반환
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No feeds found" });
     }
+
+    const feeds = result.rows.map((feed) => ({
+      feed_id: feed.feed_id,
+      text: feed.content,
+      user: {
+        nickname: feed.nickname,
+        profile_image: feed.profile_image,
+        intro: feed.intro,
+        followers: feed.followers, // 팔로워 수
+        followings: feed.followings, // 팔로잉 수
+      },
+      images: feed.images, // 피드의 이미지 배열
+      is_following: feed.is_following, // 팔로우 여부
+    }));
+
+    res.json({
+      success: true,
+      feeds, // 랜덤으로 가져온 피드와 그 사용자 정보 반환
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 });
 
 app.listen(5000, function () {
-    console.log("server is running...");
+  console.log("server is running...");
 });
